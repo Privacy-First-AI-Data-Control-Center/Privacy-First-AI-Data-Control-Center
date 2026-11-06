@@ -4,10 +4,13 @@ import { Users } from './entity/users.js';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { EmailService } from '../email/email.service.js';
+import { ChangePasswordDto } from './dto/change-password.dto.js';
+import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class UserService {
-    constructor(@InjectRepository(Users) private userRepo: Repository<Users>){}
+    constructor(@InjectRepository(Users) private userRepo: Repository<Users>, private emailService: EmailService){}
 
     async getProfile(id: string): Promise<Users | null>{
         return await this.userRepo.findOne({
@@ -41,12 +44,12 @@ export class UserService {
         }
     }
 
-    async updateUser(id: string, updateUserDto: UpdateUserDto){
-        const user = this.getUserById(id);
+    async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<string>{
+        const user = await this.getProfile(id);
         if(user != null){
-            const res = (await this.userRepo.update(id, updateUserDto)).affected;
+            const res = (await this.userRepo.update({ id: Number(id) }, updateUserDto)).affected;
             if(res != null && res > 0){
-                return 'User updated successfully';
+                return 'updated successfully';
             }
             else{
                 return 'Failed to update';
@@ -55,5 +58,22 @@ export class UserService {
         else{
             throw new NotFoundException(`User with id ${id} not found`)
         }
+    }
+
+    async changePassword(id: string, changePasswordDto: ChangePasswordDto): Promise<string>{
+        const user = await this.getProfile(id);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        const isMatch = await bcrypt.compare(changePasswordDto.currentPassword, user.passwordHash);
+
+        if (!isMatch) {
+            throw new BadRequestException('Current password is incorrect');
+        }
+
+        await this.userRepo.update({id: user.id}, {passwordHash: await bcrypt.hash(changePasswordDto.newPassword, 10)});
+        await this.emailService.sendMail(user.email, 'Your pasword has been changed', `Your password has been changed at ${new Date().toLocaleString()}`);
+        return 'Password changed successfully'
     }
 }

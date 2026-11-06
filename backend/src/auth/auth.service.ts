@@ -13,7 +13,7 @@ export class AuthService {
         try{
             const user = await this.userService.getUserById(login.userId);
             if(user != null){
-                if(login.password == user.passwordHash || await bcrypt.compare(login.password, user.passwordHash)){
+                if(await bcrypt.compare(login.password, user.passwordHash)){
                     const payload = {
                         id: user.id,
                         username: user.username,

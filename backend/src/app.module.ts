@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module.js';
 import { ConfigModule} from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module.js';
+import { EmailModule } from './email/email.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -15,7 +16,7 @@ import { AuthModule } from './auth/auth.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }) , UserModule, AuthModule],
+  }) , UserModule, AuthModule, EmailModule],
   controllers: [AppController],
   providers: [AppService],
 })
