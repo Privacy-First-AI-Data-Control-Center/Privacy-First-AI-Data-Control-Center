@@ -11,26 +11,28 @@ export class AuthService {
         try{
             const user = await this.userService.getUserById(login.userId);
             if(user != null){
-                if(login.password === user.passwordHash){
+                if(login.password == user.passwordHash){
                     const payload = {
                         id: user.id,
                         username: user.username,
                         email: user.email,
                         role: user.role
-                    }
+                    };
 
                     return this.jwtService.sign(payload);
                 }
                 else{
-                    return 'Incorrect Password'
+                    return 'Incorrect Password';
                 }
             }
             else{
-                return `User with id ${login.userId} not found`
+                return `User with id ${login.userId} not found`;
             }
         }
         catch{
             throw new BadRequestException('Something went wrong');
         }
     }
+
+    
 }

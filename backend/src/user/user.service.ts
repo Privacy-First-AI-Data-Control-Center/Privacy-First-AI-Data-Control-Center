@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entity/users.js';
 import { Repository } from 'typeorm';
+import { CreateUserDto } from './dto/create-user.dto.js';
 
 @Injectable()
 export class UserService {
@@ -22,5 +23,14 @@ export class UserService {
                 {email: userId}
             ]
         })
+    }
+
+    async createUser(createUserDto: CreateUserDto): Promise<any>{
+        try{
+            await this.userRepo.save(await this.userRepo.create(createUserDto));
+        }
+        catch{
+            throw new BadRequestException("Failed to create user");
+        }
     }
 }
