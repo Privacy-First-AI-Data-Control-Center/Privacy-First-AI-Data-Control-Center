@@ -2,6 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto.js';
 import { UserService } from '../user/user.service.js';
 import {JwtService} from '@nestjs/jwt'
+import { RegisterDto } from './dto/register.dto.js';
+import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class AuthService {
@@ -11,7 +13,7 @@ export class AuthService {
         try{
             const user = await this.userService.getUserById(login.userId);
             if(user != null){
-                if(login.password == user.passwordHash){
+                if(login.password == user.passwordHash || await bcrypt.compare(login.password, user.passwordHash)){
                     const payload = {
                         id: user.id,
                         username: user.username,
@@ -34,5 +36,13 @@ export class AuthService {
         }
     }
 
+    async registration(registerDto: RegisterDto): Promise<string>{
+        registerDto.passwordHash = await bcrypt.hash(registerDto.passwordHash, 10);
+        return await this.userService.createUser({...registerDto});
+    }
+
+    async refreshToken(id: number): Promise<string>{
+        return 'a';
+    }
     
 }

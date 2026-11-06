@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entity/users.js';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto.js';
+import { UpdateUserDto } from './dto/update-user.dto.js';
 
 @Injectable()
 export class UserService {
@@ -25,12 +26,34 @@ export class UserService {
         })
     }
 
-    async createUser(createUserDto: CreateUserDto): Promise<any>{
+    async createUser(createUserDto: CreateUserDto): Promise<string>{
         try{
-            await this.userRepo.save(await this.userRepo.create(createUserDto));
+            const u = await this.userRepo.save(await this.userRepo.create(createUserDto));
+            if(u != null){
+                return 'User registered successfully';
+            }
+            else{
+                return 'failed to create user';
+            }
         }
         catch{
             throw new BadRequestException("Failed to create user");
+        }
+    }
+
+    async updateUser(id: string, updateUserDto: UpdateUserDto){
+        const user = this.getUserById(id);
+        if(user != null){
+            const res = (await this.userRepo.update(id, updateUserDto)).affected;
+            if(res != null && res > 0){
+                return 'User updated successfully';
+            }
+            else{
+                return 'Failed to update';
+            }
+        }
+        else{
+            throw new NotFoundException(`User with id ${id} not found`)
         }
     }
 }
