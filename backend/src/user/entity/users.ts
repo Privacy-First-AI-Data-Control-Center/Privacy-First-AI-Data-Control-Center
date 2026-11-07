@@ -1,6 +1,8 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm";
 import { Role } from "../enum/role.js";
 import { AccountStatus } from "../enum/account-status.js";
+import { Workspaces } from "../../workspace/entity/workspaces.js";
+import { WorkspaceMembers } from "../../workspace-member/entity/workspace-members.js";
 
 @Entity()
 export class Users{
@@ -57,4 +59,10 @@ export class Users{
     updatedAt: Date;
     @DeleteDateColumn()
     deletedAt: Date;
+
+    //relations
+    @OneToMany(()=> Workspaces, (workspaces)=> workspaces.ownerUser)
+    workspaces: Relation<Workspaces>[];
+    @OneToMany(()=> WorkspaceMembers, (workspaceMembers)=> workspaceMembers.user)
+    workspaceMembers: Relation<WorkspaceMembers>[];
 }
