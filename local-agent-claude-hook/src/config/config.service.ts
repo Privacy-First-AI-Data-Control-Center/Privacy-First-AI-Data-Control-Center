@@ -84,6 +84,14 @@ export class ConfigService {
   public get agentDeviceId(): string {
     return this.config.AGENT_DEVICE_ID;
   }
+
+  public get agentCredentialToken(): string | undefined {
+    return this.config.AGENT_CREDENTIAL_TOKEN;
+  }
+
+  public get backendTimeoutMs(): number {
+    return this.config.BACKEND_TIMEOUT_MS;
+  }
 }
 
 let defaultConfigService: ConfigService | null = null;

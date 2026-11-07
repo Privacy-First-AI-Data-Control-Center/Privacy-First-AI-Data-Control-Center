@@ -65,6 +65,15 @@ export const EnvSchema = z
       .trim()
       .min(1)
       .default('local-unregistered-device'),
+
+    AGENT_CREDENTIAL_TOKEN: z.string().trim().optional(),
+
+    BACKEND_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .min(1000, 'BACKEND_TIMEOUT_MS must be at least 1000ms')
+      .max(60000, 'BACKEND_TIMEOUT_MS cannot exceed 60000ms')
+      .default(10000),
   })
   .transform((data, ctx) => {
     const rawToken = data.LOCAL_WEBHOOK_TOKEN;
