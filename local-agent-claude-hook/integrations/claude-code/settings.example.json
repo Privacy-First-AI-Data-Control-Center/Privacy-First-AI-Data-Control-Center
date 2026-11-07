@@ -1,0 +1,63 @@
+{
+  "$comment": "Copy the 'hooks' block below into ~/.claude/settings.json or your project's .claude/settings.local.json. Replace LOCAL_WEBHOOK_TOKEN with the value from your local-agent-claude-hook/.env file.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:43127/hooks/claude-code",
+            "headers": {
+              "x-webhook-token": "replace-with-secure-local-webhook-token-min-16-chars"
+            },
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:43127/hooks/claude-code",
+            "headers": {
+              "x-webhook-token": "replace-with-secure-local-webhook-token-min-16-chars"
+            },
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:43127/hooks/claude-code",
+            "headers": {
+              "x-webhook-token": "replace-with-secure-local-webhook-token-min-16-chars"
+            },
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:43127/hooks/claude-code",
+            "headers": {
+              "x-webhook-token": "replace-with-secure-local-webhook-token-min-16-chars"
+            },
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
