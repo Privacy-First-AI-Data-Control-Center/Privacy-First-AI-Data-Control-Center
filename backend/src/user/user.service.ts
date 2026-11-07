@@ -75,7 +75,7 @@ export class UserService {
 
         this.userRepo.update({id: user.id}, {passwordHash: await bcrypt.hash(changePasswordDto.newPassword, 10)});
         this.emailService.sendMail(user.email, 'Your pasword has been changed', `Your password has been changed at ${new Date().toLocaleString()}`);
-        return 'Password changed successfully'
+        return 'Password changed successfully';
     }
 
     async deleteUser(id: string): Promise<string>{

@@ -6,6 +6,7 @@ import { ConfigModule} from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module.js';
 import { EmailModule } from './email/email.module.js';
+import { WorkspaceModule } from './workspace/workspace.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -16,7 +17,7 @@ import { EmailModule } from './email/email.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }) , UserModule, AuthModule, EmailModule],
+  }) , UserModule, AuthModule, EmailModule, WorkspaceModule],
   controllers: [AppController],
   providers: [AppService],
 })
