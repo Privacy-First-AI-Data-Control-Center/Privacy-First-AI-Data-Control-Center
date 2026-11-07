@@ -1,0 +1,77 @@
+{
+  "$comment": "Copy the 'hooks' entries below into ~/.gemini/settings.json to connect Gemini CLI to your Local Monitoring Agent",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent-claude-hook/integrations/claude-code/installer/antigravity-hook-bridge.mjs' SessionStart gemini-cli",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent-claude-hook/integrations/claude-code/installer/antigravity-hook-bridge.mjs' SessionEnd gemini-cli",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent-claude-hook/integrations/claude-code/installer/antigravity-hook-bridge.mjs' PreToolUse gemini-cli",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "AfterTool": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent-claude-hook/integrations/claude-code/installer/antigravity-hook-bridge.mjs' PostToolUse gemini-cli",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "BeforeAgent": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent-claude-hook/integrations/claude-code/installer/antigravity-hook-bridge.mjs' UserPromptSubmit gemini-cli",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent-claude-hook/integrations/claude-code/installer/antigravity-hook-bridge.mjs' Stop gemini-cli",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}
