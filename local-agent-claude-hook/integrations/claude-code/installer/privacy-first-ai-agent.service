@@ -1,0 +1,19 @@
+[Unit]
+Description=Privacy-First AI Data Control Center - Local Monitoring Agent
+Documentation=https://github.com/Privacy-First-AI-Data-Control-Center/Privacy-First-AI-Data-Control-Center
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.local/share/privacy-first-ai-agent
+EnvironmentFile=%h/.config/privacy-first-ai-agent/.env
+ExecStart=/usr/bin/env node dist/main.js
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target
