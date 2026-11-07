@@ -7,6 +7,7 @@ import { UpdateUserDto } from './dto/update-user.dto.js';
 import { EmailService } from '../email/email.service.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import * as bcrypt from 'bcrypt'
+import { escape } from 'querystring';
 
 @Injectable()
 export class UserService {
@@ -72,8 +73,18 @@ export class UserService {
             throw new BadRequestException('Current password is incorrect');
         }
 
-        await this.userRepo.update({id: user.id}, {passwordHash: await bcrypt.hash(changePasswordDto.newPassword, 10)});
-        await this.emailService.sendMail(user.email, 'Your pasword has been changed', `Your password has been changed at ${new Date().toLocaleString()}`);
+        this.userRepo.update({id: user.id}, {passwordHash: await bcrypt.hash(changePasswordDto.newPassword, 10)});
+        this.emailService.sendMail(user.email, 'Your pasword has been changed', `Your password has been changed at ${new Date().toLocaleString()}`);
         return 'Password changed successfully'
+    }
+
+    async deleteUser(id: string): Promise<string>{
+        const res = (await this.userRepo.softDelete(id)).affected;
+        if(res != null && res > 0){
+            return `User with id: ${id} deleted successfully`;
+        }
+        else{
+            return `User not found`;
+        }
     }
 }

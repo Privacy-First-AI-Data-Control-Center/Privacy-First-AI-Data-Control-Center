@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service.js';
 import { Users } from './entity/users.js';
 import { JwtGuard } from '../auth/jwtGuard.guard.js';
@@ -25,5 +25,11 @@ export class UserController {
   @UseGuards(JwtGuard)
   async changePassword(@Req() req: any, @Body() changePasswordDto: ChangePasswordDto): Promise<string>{
     return await this.userService.changePassword(req.user.id, changePasswordDto);
+  }
+
+  @Delete('/me')
+  @UseGuards(JwtGuard)
+  async deleteUser(@Req() req: any): Promise<string>{
+    return await this.userService.deleteUser(req.user.id);
   }
 }
