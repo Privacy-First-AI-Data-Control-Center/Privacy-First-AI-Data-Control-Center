@@ -68,6 +68,22 @@ export class QueueService {
     return this.repository.getStats();
   }
 
+  public listRecent(limit = 50): Array<{
+    status: QueueItemStatus;
+    retryCount: number;
+    createdAt: string;
+    deliveredAt: string | null;
+    event: NormalizedAgentEvent;
+  }> {
+    return this.repository.listRecentEvents(limit).map((row) => ({
+      status: row.status,
+      retryCount: row.retryCount,
+      createdAt: row.createdAt,
+      deliveredAt: row.deliveredAt,
+      event: JSON.parse(row.payloadJson) as NormalizedAgentEvent,
+    }));
+  }
+
   public close(): void {
     this.repository.close();
   }

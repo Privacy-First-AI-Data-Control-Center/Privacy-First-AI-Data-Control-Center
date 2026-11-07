@@ -1,6 +1,7 @@
 import {
   ClaudeCodeEventMapper,
   type ConfidenceLevel,
+  type ConnectorSlug,
   type MappedClaudeCodeEvent,
 } from './event-mapper.js';
 import type { ClaudeCodeHookPayload } from './hook-handler.js';
@@ -96,7 +97,10 @@ export class ClaudeCodeConnectorService {
     };
   }
 
-  public normalizeHookPayload(payload: ClaudeCodeHookPayload): MappedClaudeCodeEvent {
-    return this.eventMapper.mapHookToEvent(payload);
+  public normalizeHookPayload(
+    payload: ClaudeCodeHookPayload,
+    connectorSlug: ConnectorSlug = 'claude-code',
+  ): MappedClaudeCodeEvent {
+    return this.eventMapper.mapHookToEvent(payload, connectorSlug);
   }
 }

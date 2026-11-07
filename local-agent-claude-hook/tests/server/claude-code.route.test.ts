@@ -104,6 +104,31 @@ describe('Stage 2: POST /hooks/claude-code Webhook Receiver', () => {
     });
   });
 
+  it('tags events received on /hooks/antigravity with the antigravity connector', async () => {
+    const app = await createTestServer();
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/hooks/antigravity',
+      headers: {
+        'content-type': 'application/json',
+        'x-webhook-token': validToken,
+      },
+      payload: {
+        hook_event_name: 'PostToolUse',
+        session_id: 'agy-conversation-1',
+        tool_name: 'Bash',
+        tool_input: { command: 'ls' },
+      },
+    });
+
+    expect(response.statusCode).toBe(202);
+    expect(response.json()).toMatchObject({
+      connector: 'antigravity',
+      summary: 'Antigravity completed Bash command',
+    });
+  });
+
   it('rejects requests with missing webhook token with 401 Unauthorized', async () => {
     const app = await createTestServer();
 

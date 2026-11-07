@@ -1,0 +1,44 @@
+{
+  "$comment": "Copy this into ~/.gemini/config/hooks.json to connect Antigravity to your Local Monitoring Agent",
+  "privacy-first-ai-agent": {
+    "enabled": true,
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent-claude-hook/integrations/claude-code/installer/antigravity-hook-bridge.mjs' SessionStart antigravity",
+        "timeout": 5
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent-claude-hook/integrations/claude-code/installer/antigravity-hook-bridge.mjs' PreToolUse antigravity",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent-claude-hook/integrations/claude-code/installer/antigravity-hook-bridge.mjs' PostToolUse antigravity",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent-claude-hook/integrations/claude-code/installer/antigravity-hook-bridge.mjs' Stop antigravity",
+        "timeout": 5
+      }
+    ]
+  }
+}

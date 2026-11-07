@@ -4,6 +4,7 @@ import { EventProcessor } from '../../events/event-processor.js';
 import { ClaudeCodeConnectorService } from './connector.service.js';
 import type {
   ConfidenceLevel,
+  ConnectorSlug,
   EventSeverity,
   NormalizedEventCategory,
   NormalizedEventType,
@@ -67,7 +68,7 @@ export interface HookReceiptResult {
   queued: boolean;
   duplicate: boolean;
   redacted: boolean;
-  connector: 'claude-code';
+  connector: ConnectorSlug;
   hookEventName: ClaudeCodeHookEventName;
   eventType: NormalizedEventType;
   category: NormalizedEventCategory;
@@ -96,10 +97,11 @@ export class ClaudeCodeHookHandler {
 
   public async handleHookPayload(
     payload: ClaudeCodeHookPayload,
+    connectorSlug: ConnectorSlug = 'claude-code',
   ): Promise<HookReceiptResult> {
     const receiptId = randomUUID();
     const receivedAt = new Date().toISOString();
-    const mappedEvent = this.connectorService.normalizeHookPayload(payload);
+    const mappedEvent = this.connectorService.normalizeHookPayload(payload, connectorSlug);
     const { normalizedEvent, queueResult } =
       this.eventProcessor.processMappedEvent(mappedEvent);
 
@@ -111,7 +113,7 @@ export class ClaudeCodeHookHandler {
       queued: queueResult.enqueued,
       duplicate: queueResult.duplicate,
       redacted: normalizedEvent.redaction.applied,
-      connector: 'claude-code',
+      connector: mappedEvent.connectorSlug,
       hookEventName: mappedEvent.hookEventName,
       eventType: mappedEvent.eventType,
       category: mappedEvent.category,

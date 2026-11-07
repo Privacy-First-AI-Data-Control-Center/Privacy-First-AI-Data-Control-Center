@@ -1,6 +1,19 @@
 import { randomUUID } from 'node:crypto';
 import type { ClaudeCodeHookEventName, ClaudeCodeHookPayload } from './hook-handler.js';
 
+/**
+ * AI tools whose hook payloads share the Claude Code hook shape
+ * (Antigravity and Gemini CLI are translated into it by the hook bridge script).
+ */
+export const CONNECTOR_SLUGS = ['claude-code', 'antigravity', 'gemini-cli'] as const;
+export type ConnectorSlug = (typeof CONNECTOR_SLUGS)[number];
+
+export const CONNECTOR_DISPLAY_NAMES: Record<ConnectorSlug, string> = {
+  'claude-code': 'Claude Code',
+  antigravity: 'Antigravity',
+  'gemini-cli': 'Gemini CLI',
+};
+
 export type ConfidenceLevel = 'observed' | 'inferred' | 'unavailable';
 export type EventSeverity = 'info' | 'low' | 'medium' | 'high' | 'critical';
 
@@ -34,7 +47,7 @@ export type NormalizedEventType =
 
 export interface MappedClaudeCodeEvent {
   eventId: string;
-  connectorSlug: 'claude-code';
+  connectorSlug: ConnectorSlug;
   connectorVersion: string;
   hookEventName: ClaudeCodeHookEventName;
   eventType: NormalizedEventType;
@@ -119,7 +132,23 @@ export class ClaudeCodeEventMapper {
     this.connectorVersion = connectorVersion;
   }
 
-  public mapHookToEvent(payload: ClaudeCodeHookPayload): MappedClaudeCodeEvent {
+  /**
+   * Maps a hook payload and tags it with the AI tool that actually produced it.
+   * Summaries are built with the "Claude Code" prefix internally and re-labelled here.
+   */
+  public mapHookToEvent(
+    payload: ClaudeCodeHookPayload,
+    connectorSlug: ConnectorSlug = 'claude-code',
+  ): MappedClaudeCodeEvent {
+    const event = this.mapPayload(payload);
+    return {
+      ...event,
+      connectorSlug,
+      summary: event.summary.replace(/^Claude Code/, CONNECTOR_DISPLAY_NAMES[connectorSlug]),
+    };
+  }
+
+  private mapPayload(payload: ClaudeCodeHookPayload): MappedClaudeCodeEvent {
     const eventId = randomUUID();
     const occurredAt = new Date().toISOString();
     const hookName = payload.hook_event_name;

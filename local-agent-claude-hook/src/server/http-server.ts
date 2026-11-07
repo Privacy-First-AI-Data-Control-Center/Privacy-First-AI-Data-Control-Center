@@ -4,6 +4,7 @@ import Fastify, {
   type FastifyServerOptions,
 } from 'fastify';
 import { ConfigService, getConfigService } from '../config/config.service.js';
+import { resolveLocalDeviceId } from '../config/device-identity.js';
 import { ClaudeCodeHookHandler } from '../connectors/claude-code/hook-handler.js';
 import { EventNormalizer } from '../events/event-normalizer.js';
 import { EventProcessor } from '../events/event-processor.js';
@@ -25,7 +26,6 @@ export async function buildServer(
   options: BuildServerOptions = {},
 ): Promise<FastifyInstance> {
   const config = options.configService ?? getConfigService();
-  const healthService = options.healthService ?? new HealthService();
 
   const queueService =
     options.queueService ??
@@ -34,11 +34,20 @@ export async function buildServer(
       maxCapacity: config.queueMaxCapacity,
     });
 
+  const healthService =
+    options.healthService ??
+    new HealthService({
+      version: '1.0.0',
+      getQueueStats: () => queueService.getStats(),
+    });
+
   const eventProcessor =
     options.eventProcessor ??
     new EventProcessor({
       redactionService: new RedactionService(),
-      eventNormalizer: new EventNormalizer({ deviceId: config.agentDeviceId }),
+      eventNormalizer: new EventNormalizer({
+        deviceId: resolveLocalDeviceId(config.agentDeviceId),
+      }),
       queueService,
     });
 
@@ -110,7 +119,7 @@ export async function buildServer(
     });
   });
 
-  await registerHealthRoute(server, { healthService });
+  await registerHealthRoute(server, { healthService, queueService });
   await registerClaudeCodeRoute(server, {
     configService: config,
     hookHandler,

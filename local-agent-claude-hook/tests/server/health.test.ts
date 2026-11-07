@@ -41,6 +41,12 @@ describe('Stage 1: Local Agent Foundation & Health Endpoint', () => {
       version: '1.0.0',
       uptimeSeconds: expect.any(Number),
       timestamp: expect.any(String),
+      queue: {
+        pendingCount: 0,
+        deliveredCount: 0,
+        failedCount: 0,
+        totalCount: 0,
+      },
     });
     expect(body.uptimeSeconds).toBeGreaterThanOrEqual(0);
     expect(Number.isNaN(Date.parse(body.timestamp))).toBe(false);

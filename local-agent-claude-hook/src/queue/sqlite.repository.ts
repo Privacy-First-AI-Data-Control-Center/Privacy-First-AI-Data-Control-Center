@@ -312,6 +312,31 @@ export class SqliteQueueRepository {
     };
   }
 
+  public listRecentEvents(limit = 50): QueuedEventRow[] {
+    const rows = this.db
+      .prepare(
+        `SELECT
+          event_id as eventId,
+          dedupe_key as dedupeKey,
+          event_type as eventType,
+          severity,
+          payload_json as payloadJson,
+          status,
+          retry_count as retryCount,
+          next_attempt_at as nextAttemptAt,
+          last_error as lastError,
+          created_at as createdAt,
+          updated_at as updatedAt,
+          delivered_at as deliveredAt
+        FROM event_queue
+        ORDER BY created_at DESC
+        LIMIT ?`,
+      )
+      .all(limit) as unknown as QueuedEventRow[];
+
+    return rows;
+  }
+
   public close(): void {
     if (!this.isClosed) {
       this.db.close();

@@ -10,7 +10,9 @@
     "start": "node dist/main.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:view": "node -e \"import('node:sqlite').then(({DatabaseSync})=>{const db=new DatabaseSync('data/agent-queue.db');const rows=db.prepare('SELECT event_id, event_type, severity, status, retry_count, created_at FROM event_queue ORDER BY created_at DESC').all();console.table(rows);db.close();})\"",
+    "setup:hooks": "bash integrations/claude-code/installer/setup-claude-hooks.sh"
   },
   "keywords": [
     "privacy",
