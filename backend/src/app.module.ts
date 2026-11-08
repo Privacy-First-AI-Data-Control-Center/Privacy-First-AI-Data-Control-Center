@@ -11,6 +11,9 @@ import { WorkspaceMemberModule } from './workspace-member/workspace-member.modul
 
 import { AlertModule } from './alert/alert.module.js';
 import { AuditLogsModule } from './audit-logs/audit-logs.module.js';
+import { ConnectorsModule } from './connectors/connectors.module.js';
+import { EventsModule } from './events/events.module.js';
+import { IntegrationsModule } from './integrations/integrations.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -21,7 +24,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }) , UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule,AlertModule, AuditLogsModule],
+  }) , UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule,AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule],
   controllers: [AppController],
   providers: [AppService,],
 })
