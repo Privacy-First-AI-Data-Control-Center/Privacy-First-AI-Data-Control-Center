@@ -7,12 +7,13 @@ import {
     ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
+    OneToMany
 } from "typeorm";
 import type { Relation } from "typeorm";
 import { Workspaces } from "../../workspace/entity/workspaces.js";
 import { ConnectorTypes } from "../../connectors/entities/connector.entity.js";
 import { IntegrationStatus } from "../enum/integration-status.js";
-
+import { IntegrationCapabilities } from "./integration-capability.entity.js";
 @Entity()
 export class Integrations {
     @PrimaryGeneratedColumn()
@@ -59,4 +60,7 @@ export class Integrations {
 
     @DeleteDateColumn()
     deletedAt?: Date;
+
+    @OneToMany(()=>IntegrationCapabilities , (cap)=>cap.integration)
+    capabilities: Relation<IntegrationCapabilities>[];
 }
