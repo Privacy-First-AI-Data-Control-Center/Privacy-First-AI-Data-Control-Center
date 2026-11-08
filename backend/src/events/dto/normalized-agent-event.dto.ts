@@ -1,6 +1,7 @@
 import { Type } from "class-transformer";
 import {
     IsArray,
+    IsBoolean,
     IsISO8601,
     IsNotEmpty,
     IsNumber,
@@ -16,27 +17,31 @@ import {
 export class EventSourceDto {
     @IsString()
     @IsNotEmpty()
-    kind: string;
+    sourceKind: string; // e.g. 'connector_hook'
 
     @IsString()
     @IsNotEmpty()
-    version: string;
+    connectorVersion: string; // e.g. '1.0.0'
+
+    @IsString()
+    @IsNotEmpty()
+    deviceId: string; // e.g. 'local-unregistered-device' or device ID
 
     @IsOptional()
     @IsString()
-    instance?: string;
+    integration?: string; // e.g. 'claude-code', 'antigravity'
 }
 
 export class EventRedactionDto {
-    @IsNumber()
-    redactedCount: number;
+    @IsBoolean()
+    applied: boolean;
 
     @IsArray()
     @IsString({ each: true })
-    appliedRules: string[];
+    rules: string[];
 
-    @IsString()
-    timestamp: string;
+    @IsNumber()
+    redactedCount: number;
 }
 
 export class NormalizedAgentEventDto {
