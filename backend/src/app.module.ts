@@ -9,6 +9,8 @@ import { EmailModule } from './email/email.module.js';
 import { WorkspaceModule } from './workspace/workspace.module.js';
 import { WorkspaceMemberModule } from './workspace-member/workspace-member.module.js';
 
+import { AlertModule } from './alert/alert.module.js';
+
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal: true,
@@ -18,8 +20,8 @@ import { WorkspaceMemberModule } from './workspace-member/workspace-member.modul
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }) , UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule],
+  }) , UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule,AlertModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,],
 })
 export class AppModule {}

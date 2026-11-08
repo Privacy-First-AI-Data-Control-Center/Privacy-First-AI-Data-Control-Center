@@ -1,0 +1,8 @@
+export enum AlertHistoryKind{
+    CREATED = 'CREATED',
+    UPDATED = 'UPDATED',
+    ACKNOWLEDGED = 'ACKNOWLEDGED',
+    RESOLVED = 'RESOLVED',
+    REOPENED = 'REOPENED',
+    ASSIGNED = 'ASSIGNED'
+}
