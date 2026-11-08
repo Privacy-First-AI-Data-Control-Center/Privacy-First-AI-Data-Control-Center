@@ -17,21 +17,25 @@ export class WorkspaceController {
   }
 
   @Get()
+  @UseGuards(JwtGuard)
   async getAllWorkspaces(): Promise<Workspaces[]>{
     return await this.workspaceService.getAllWorkspaces();
   }
 
   @Get('/:id')
+  @UseGuards(JwtGuard)
   async getWorkspaceById(@Param('id') id: string): Promise<Workspaces | null>{
     return await this.workspaceService.getWorkspaceById(id);
   }
 
   @Delete('/:id')
+  @UseGuards(JwtGuard)
   async deleteWorkspace(@Param('id') id: string): Promise<string>{
     return await this.workspaceService.deleteWorkspace(id);
   }
 
   @Patch('/:id')
+  @UseGuards(JwtGuard)
   async updateWorkspace(@Param('id') id: string,@Body() updateWorkspaceDto: UpdateWorkspaceDto): Promise<string>{
     return await this.workspaceService.updateWorkspace(id, updateWorkspaceDto);
   }

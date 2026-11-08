@@ -13,7 +13,7 @@ import { RolesGuard } from './roles/roles.guard.js';
     global: true,
     secret: 'ghosthunters',
     signOptions:{
-      expiresIn: '1H'
+      expiresIn: '24H'
     }
   })],
   controllers: [AuthController],
