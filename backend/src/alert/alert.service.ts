@@ -13,6 +13,8 @@ import { UpdateAlertDto } from './dto/update-alert.dto.js';
 import { AssignAlertDto } from './dto/assign-alert.dto.js';
 import { AlertNotificationService } from './alert-notification.service.js';
 import { AlertSeverity } from './enum/alert-severity.js';
+import { AuditLogsService } from '../audit-logs/audit-logs.service.js';
+import { ActorType } from '../audit-logs/enum/actor-type.js';
 
 @Injectable()
 export class AlertService {
@@ -21,8 +23,8 @@ export class AlertService {
         @InjectRepository(AlertHistories) private historyRepo: Repository<AlertHistories>,
         @InjectRepository(Workspaces) private workspaceRepo: Repository<Workspaces>,
         @InjectRepository(WorkspaceMembers) private memberRepo: Repository<WorkspaceMembers>,
-        private dataSource: DataSource,
-        private notificationService: AlertNotificationService
+        private notificationService: AlertNotificationService,
+        private readonly auditService:AuditLogsService
     ){}
 
     private async addHistory(alertId: number, eventKind: AlertHistoryKind, actorUserId: number | null, note: string | null = null)
@@ -42,6 +44,12 @@ export class AlertService {
           await this.addHistory(alert.id,AlertHistoryKind.CREATED,actorUserId)
 
           this.notificationService.notifyCreated(saved);
+          await this.auditService.log({
+          workspaceId: workspaceId,  actorUserId: actorUserId,
+         actorType: actorUserId ? ActorType.USER : ActorType.SYSTEM,
+           action: 'ALERT_CREATED',targetType: 'ALERT', targetId: saved.id,
+          metadata: { severity: saved.severity, alertType: saved.alertType }
+          });
           return saved;
     }
 
@@ -99,6 +107,15 @@ export class AlertService {
         const res = (await this.alertRepo.update({ id: alert.id }, updateAlertDto)).affected;
         if(res != null && res > 0){
             await this.addHistory(alert.id, AlertHistoryKind.UPDATED, actorUserId, 'Alert updated');
+
+            await this.auditService.log({
+            workspaceId: workspaceId,
+             actorUserId: actorUserId,
+                action: 'ALERT_UPDATED',
+                targetType: 'ALERT',
+              targetId: alert.id,
+                   metadata: updateAlertDto
+              });
             return 'Alert updated successfully';
         }
         else{
@@ -124,6 +141,14 @@ export class AlertService {
     await this.alertRepo.save(alert);
     await this.addHistory(alert.id, AlertHistoryKind.ACKNOWLEDGED, actorUserId, note);
 
+    await this.auditService.log({
+    workspaceId: workspaceId,
+    actorUserId: actorUserId,
+    action: 'ALERT_ACKNOWLEDGED',
+    targetType: 'ALERT',
+    targetId: alert.id
+    });
+
     return 'Alert acknowledged successfully';
  }
 
@@ -141,6 +166,14 @@ async resolveAlert(workspaceId: number, alertId: number, actorUserId: number, no
     await this.addHistory(alert.id, AlertHistoryKind.RESOLVED, actorUserId, note);
 
     this.notificationService.notifyStatusChanged(alert, actorUserId);
+
+    await this.auditService.log({
+    workspaceId: workspaceId,
+    actorUserId: actorUserId,
+    action: 'ALERT_RESOLVED',
+    targetType: 'ALERT',
+    targetId: alert.id
+});
     return 'Alert resolved successfully';
 }
 
@@ -158,6 +191,13 @@ async reopenAlert(workspaceId: number, alertId: number, actorUserId: number, not
     await this.addHistory(alert.id, AlertHistoryKind.REOPENED, actorUserId, note);
 
     this.notificationService.notifyStatusChanged(alert, actorUserId);
+    await this.auditService.log({
+    workspaceId: workspaceId,
+    actorUserId: actorUserId,
+    action: 'ALERT_REOPENED',
+    targetType: 'ALERT',
+    targetId: alert.id
+});
     return 'Alert reopened successfully';
 }
 
@@ -193,6 +233,14 @@ async assignAlert(workspaceId: number, alertId: number, assignAlertDto: AssignAl
     }
     
     await this.addHistory(alert.id, AlertHistoryKind.ASSIGNED, actorUserId, note);
+    await this.auditService.log({
+    workspaceId: workspaceId,
+    actorUserId: actorUserId,
+    action: 'ALERT_ASSIGNED',
+    targetType: 'ALERT',
+    targetId: alert.id,
+    metadata: { assignedUserId: assignId }
+    });
 
      this.notificationService.notifyAssigned(alert,actorUserId)
 
