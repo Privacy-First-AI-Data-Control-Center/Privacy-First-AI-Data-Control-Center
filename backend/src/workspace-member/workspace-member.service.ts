@@ -21,7 +21,7 @@ export class WorkspaceMemberService {
             const member = await this.workspaceMembersRepo.save(memberinfo);
 
             if(member != null){
-                this.sendInvitaionMail(member.id)
+                this.sendInvitaionMail(member.id);
                 return 'Member added successfully';
             }
             else{
@@ -70,6 +70,22 @@ export class WorkspaceMemberService {
             return 'Member not found';
         }
     }
+
+    // async updateMemberRole(workspaceId: string, memberId: string, updateDeviceDto: UpdateDeviceDto){
+    //     const device = await this.getDeviceDetails(workspaceId, deviceId);
+    //     if(device != null){
+    //         const res = (await this.deviceRepo.update({ id: Number(deviceId) }, updateDeviceDto)).affected;
+    //         if(res != null && res > 0){
+    //             return 'updated successfully';
+    //         }
+    //         else{
+    //             return 'Failed to update';
+    //         }
+    //     }
+    //     else{
+    //         throw new NotFoundException(`Device with id ${id} not found`)
+    //     }    
+    // }
 
     async sendInvitaionMail(id: number){
         const data = await this.workspaceMembersRepo
