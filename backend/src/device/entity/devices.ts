@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import type { Relation } from 'typeorm';
 import { Workspaces } from "../../workspace/entity/workspaces.js";
 import { DeviceStatus } from "../enum/device-status.js";
+import { AgentInstallations } from "../../agent/entity/agent-installations.js";
 
 @Entity()
 export class Devices{
@@ -58,4 +59,8 @@ export class Devices{
     updatedAt: Date;
     @DeleteDateColumn()
     deletedAt: Date;
+
+    //relations
+    @OneToMany(()=> AgentInstallations, (agentInstallations)=> agentInstallations.device)
+    agentInstallations: Relation<AgentInstallations>[];
 }
