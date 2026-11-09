@@ -11,6 +11,7 @@ import { WorkspaceMemberModule } from './workspace-member/workspace-member.modul
 
 import { AlertModule } from './alert/alert.module.js';
 import { SensitiveDataTypeModule } from './sensitive-data-type/sensitive-data-type.module.js';
+import { FindingModule } from './finding/finding.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -21,7 +22,7 @@ import { SensitiveDataTypeModule } from './sensitive-data-type/sensitive-data-ty
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }) , UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule,AlertModule, SensitiveDataTypeModule],
+  }) , UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule,AlertModule, SensitiveDataTypeModule, FindingModule],
   controllers: [AppController],
   providers: [AppService,],
 })
