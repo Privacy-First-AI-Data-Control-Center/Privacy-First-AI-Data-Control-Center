@@ -18,6 +18,8 @@ import { RetentionModule } from './retention/retention.module.js';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DeviceModule } from './device/device.module.js';
 import { AgentModule } from './agent/agent.module.js';
+import { SensitiveDataTypeModule } from './sensitive-data-type/sensitive-data-type.module.js';
+import { FindingModule } from './finding/finding.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -28,7 +30,7 @@ import { AgentModule } from './agent/agent.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule],
+  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule,SensitiveDataTypeModule,FindingModule],
   controllers: [AppController],
   providers: [AppService,],
 })
