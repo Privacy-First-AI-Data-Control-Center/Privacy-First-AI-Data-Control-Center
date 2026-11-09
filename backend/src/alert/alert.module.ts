@@ -10,10 +10,11 @@ import { Users } from '../user/entity/users.js';
 import { Workspaces } from '../workspace/entity/workspaces.js';
 import { WorkspaceMembers } from '../workspace-member/entity/workspace-members.js';
 import { EmailModule } from '../email/email.module.js';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module.js';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Alerts, AlertHistories, Users, Workspaces, WorkspaceMembers]), EmailModule],
+  imports: [TypeOrmModule.forFeature([Alerts, AlertHistories, Users, Workspaces, WorkspaceMembers]), EmailModule,AuditLogsModule],
   controllers: [AlertController],
   providers: [AlertService, AlertNotificationService, WorkspaceRoleGuard],
   exports: [AlertService]

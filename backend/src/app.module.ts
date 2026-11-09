@@ -10,6 +10,14 @@ import { WorkspaceModule } from './workspace/workspace.module.js';
 import { WorkspaceMemberModule } from './workspace-member/workspace-member.module.js';
 
 import { AlertModule } from './alert/alert.module.js';
+import { AuditLogsModule } from './audit-logs/audit-logs.module.js';
+import { ConnectorsModule } from './connectors/connectors.module.js';
+import { EventsModule } from './events/events.module.js';
+import { IntegrationsModule } from './integrations/integrations.module.js';
+import { RetentionModule } from './retention/retention.module.js';
+import { ScheduleModule } from '@nestjs/schedule';
+import { DeviceModule } from './device/device.module.js';
+import { AgentModule } from './agent/agent.module.js';
 import { SensitiveDataTypeModule } from './sensitive-data-type/sensitive-data-type.module.js';
 import { FindingModule } from './finding/finding.module.js';
 
@@ -22,7 +30,7 @@ import { FindingModule } from './finding/finding.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }) , UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule,AlertModule, SensitiveDataTypeModule, FindingModule],
+  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule],
   controllers: [AppController],
   providers: [AppService,],
 })

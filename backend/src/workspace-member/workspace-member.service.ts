@@ -3,20 +3,25 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { WorkspaceMembers } from './entity/workspace-members.js';
 import { Repository } from 'typeorm';
 import { CreateWorkspaceMemberDto } from './dto/create-workspace-member.dto.js';
+import { EmailService } from '../email/email.service.js';
+import { UserService } from '../user/user.service.js';
 
 @Injectable()
 export class WorkspaceMemberService {
-    constructor(@InjectRepository(WorkspaceMembers) private workspaceMembersRepo: Repository<WorkspaceMembers>){}
+    constructor(@InjectRepository(WorkspaceMembers) private workspaceMembersRepo: Repository<WorkspaceMembers>, private emailService: EmailService){}
 
     async addMember(createWorkspaceMemberDto: CreateWorkspaceMemberDto): Promise<string>{
         try{
-            const member = await this.workspaceMembersRepo.save({
+            const memberinfo = await this.workspaceMembersRepo.create({
                 ...createWorkspaceMemberDto,
                 workspace: {id: createWorkspaceMemberDto.workspaceId},
                 user: {id: createWorkspaceMemberDto.userId}
             });
 
+            const member = await this.workspaceMembersRepo.save(memberinfo);
+
             if(member != null){
+                this.sendInvitaionMail(member.id);
                 return 'Member added successfully';
             }
             else{
@@ -64,5 +69,39 @@ export class WorkspaceMemberService {
         else{
             return 'Member not found';
         }
+    }
+
+    // async updateMemberRole(workspaceId: string, memberId: string, updateDeviceDto: UpdateDeviceDto){
+    //     const device = await this.getDeviceDetails(workspaceId, deviceId);
+    //     if(device != null){
+    //         const res = (await this.deviceRepo.update({ id: Number(deviceId) }, updateDeviceDto)).affected;
+    //         if(res != null && res > 0){
+    //             return 'updated successfully';
+    //         }
+    //         else{
+    //             return 'Failed to update';
+    //         }
+    //     }
+    //     else{
+    //         throw new NotFoundException(`Device with id ${id} not found`)
+    //     }    
+    // }
+
+    async sendInvitaionMail(id: number){
+        const data = await this.workspaceMembersRepo
+        .createQueryBuilder('wm')
+        .innerJoin('wm.workspace', 'w')
+        .innerJoin('w.ownerUser', 'wu')
+        .innerJoin('wm.user', 'u')
+        .select([
+            'wm.id AS id',
+            'u.displayName AS member_name',
+            'u.email AS member_email',
+            'w.name AS workspace_name',
+            'wu.displayName AS owner'
+        ])
+        .where('wm.id = :id', { id })
+        .getRawOne();
+        this.emailService.sendMail(data.member_email, "Workspace Invitation", `Dear ${data.member_name}, ${data.owner} has added you to workspace: ${data.workspace_name}`);
     }
 }

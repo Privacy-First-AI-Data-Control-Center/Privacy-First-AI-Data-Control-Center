@@ -1,0 +1,10 @@
+
+export enum RetentionEntityType{
+    EVENT = 'EVENT',
+    ALERT = 'ALERT',
+    FINDING = 'FINDING',
+    RISK_FINDING = 'RISK_FINDING',
+    POLICY_DECISION = 'POLICY_DECISION',
+    EXPORT_JOB = 'EXPORT_JOB',
+    REPORT_RUN = 'REPORT_RUN'
+}

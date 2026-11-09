@@ -3,6 +3,8 @@ import Fastify, {
   type FastifyInstance,
   type FastifyServerOptions,
 } from 'fastify';
+import { AgentAuthService } from '../backend/agent-auth.service.js';
+import { BackendClient } from '../backend/backend-client.js';
 import { ConfigService, getConfigService } from '../config/config.service.js';
 import { resolveLocalDeviceId } from '../config/device-identity.js';
 import { ClaudeCodeHookHandler } from '../connectors/claude-code/hook-handler.js';
@@ -26,6 +28,7 @@ export async function buildServer(
   options: BuildServerOptions = {},
 ): Promise<FastifyInstance> {
   const config = options.configService ?? getConfigService();
+  const resolvedDeviceId = resolveLocalDeviceId(config.agentDeviceId);
 
   const queueService =
     options.queueService ??
@@ -46,7 +49,7 @@ export async function buildServer(
     new EventProcessor({
       redactionService: new RedactionService(),
       eventNormalizer: new EventNormalizer({
-        deviceId: resolveLocalDeviceId(config.agentDeviceId),
+        deviceId: resolvedDeviceId,
       }),
       queueService,
     });
@@ -82,7 +85,52 @@ export async function buildServer(
     bodyLimit: config.maxBodyBytes,
   });
 
+  const agentAuthService = new AgentAuthService({
+    deviceId: resolvedDeviceId,
+    credentialToken: config.agentCredentialToken || 'dev-local-agent-token',
+  });
+
+  const backendClient = new BackendClient({
+    baseUrl: config.backendBaseUrl,
+    agentAuthService,
+    timeoutMs: config.backendTimeoutMs,
+  });
+
+  let isFlushing = false;
+  let flushTimer: NodeJS.Timeout | null = null;
+
+  const triggerBackgroundFlush = async (): Promise<void> => {
+    if (isFlushing) return;
+    const stats = queueService.getStats();
+    if (stats.pendingCount === 0) return;
+
+    isFlushing = true;
+    try {
+      const outcome = await backendClient.flushPendingQueueBatch(queueService, 20);
+      if (outcome.deliveredCount > 0) {
+        server.log.info(
+          { delivered: outcome.deliveredCount, remaining: queueService.getStats().pendingCount },
+          'Flushed queued events to NestJS backend (Supabase)',
+        );
+      }
+    } catch (err) {
+      server.log.warn({ err }, 'Background queue flush failed');
+    } finally {
+      isFlushing = false;
+    }
+  };
+
+  if (!config.isTest) {
+    flushTimer = setInterval(() => {
+      void triggerBackgroundFlush();
+    }, 5000);
+    flushTimer.unref();
+  }
+
   server.addHook('onClose', async () => {
+    if (flushTimer) {
+      clearInterval(flushTimer);
+    }
     queueService.close();
   });
 
