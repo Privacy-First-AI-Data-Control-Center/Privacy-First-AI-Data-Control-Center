@@ -14,6 +14,8 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module.js';
 import { ConnectorsModule } from './connectors/connectors.module.js';
 import { EventsModule } from './events/events.module.js';
 import { IntegrationsModule } from './integrations/integrations.module.js';
+import { RetentionModule } from './retention/retention.module.js';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -24,7 +26,7 @@ import { IntegrationsModule } from './integrations/integrations.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }) , UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule,AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule],
+  }) , ScheduleModule.forRoot(),UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule,AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule],
   controllers: [AppController],
   providers: [AppService,],
 })
