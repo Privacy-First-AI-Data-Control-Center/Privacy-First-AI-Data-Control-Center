@@ -30,7 +30,7 @@ import { FindingModule } from './finding/finding.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule],
+  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule,SensitiveDataTypeModule,FindingModule],
   controllers: [AppController],
   providers: [AppService,],
 })
