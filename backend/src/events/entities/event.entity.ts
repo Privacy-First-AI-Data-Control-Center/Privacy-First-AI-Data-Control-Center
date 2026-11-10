@@ -13,6 +13,7 @@ import {
     import { EventTypes } from "./event-type.entity.js";                                                                                                                                   
     import { EventSources } from "./event-source.entity.js";                                                                                                                               
     import { EventAttributes } from "./event-attribute.entity.js";                                                                                                                         
+    import { Findings } from "../../finding/entities/finding.entity.js";
                                                                                                                                                                                            
     @Entity()                                                                                                                                                                              
     export class Events {                                                                                                                                                                  
@@ -118,5 +119,7 @@ import {
                                                                                                                                                                                            
         // Cascade: Saving an Event automatically persists its child EventAttributes                                                                                                       
         @OneToMany(() => EventAttributes, (attr) => attr.event, { cascade: true })                                                                                                         
-        attributes: Relation<EventAttributes>[];                                                                                                                                           
+        attributes: Relation<EventAttributes>[];  
+        @OneToMany(()=>Findings,(finding)=>finding.sensetiveDataType)
+        finding:Relation<Findings[]>                                                                                                                                         
     }
