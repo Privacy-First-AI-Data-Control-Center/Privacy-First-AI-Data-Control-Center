@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Severity } from "../enum/Severity.js";
-
+import { Findings } from "../../finding/entities/finding.entity.js";
+import type {Relation} from "typeorm";
 @Entity('sensitive-data-type')
 export class SensitiveDataType{
     @PrimaryGeneratedColumn()
@@ -37,4 +38,6 @@ export class SensitiveDataType{
     updatedAt: Date;
     @DeleteDateColumn()
     deletedAt: Date;
+    @OneToMany(()=>Findings,(finding)=>finding.sensetiveDataType)
+    finding:Relation<Findings[]>
 }
