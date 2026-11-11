@@ -15,6 +15,7 @@ import {
     import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
   
     @ApiTags('Events & Telemetry (Shohag)') 
+   
                                                                                                                                                                                          
     @Controller()                                                                                                                                                                          
     export class EventsController {                                                                                                                                                        
@@ -37,9 +38,41 @@ import {
         return this.eventsService.findAll(workspaceId, query);
       }
   
-      
+       @ApiOperation({ summary: 'Get event statistics and category trends' })
+      @Get('workspaces/:workspaceId/events/statistics')
+      async getStatistics(
+        @Param('workspaceId', ParseIntPipe) workspaceId: number,
+        @Query('from') from?: string,
+        @Query('to') to?: string,
+      ) {
+        return this.eventsService.getStatistics(workspaceId, from, to);
+      }
       @Get('workspaces/:workspaceId/events/:eventId')
       async getEventDetail(@Param('eventId') eventId: string) {
         return this.eventsService.findOne(eventId);
       }
+
+    
+    
+    
+    @ApiOperation({ summary: 'Get structured attributes for an event' })                                                                                                                 
+      @Get('workspaces/:workspaceId/events/:eventId/attributes')                                                                                                                           
+      async getEventAttributes(@Param('eventId') eventId: string) {                                                                                                                        
+        return this.eventsService.getEventAttributes(eventId);                                                                                                                             
+      }                                                                                                                                                                                    
+  
+      @ApiOperation({ summary: 'Get ingestion timeline and latency for an event' })
+      @Get('workspaces/:workspaceId/events/:eventId/timeline')
+      async getEventTimeline(@Param('eventId') eventId: string) {
+        return this.eventsService.getEventTimeline(eventId);
+      }
+  
+      
+  
+      @ApiOperation({ summary: 'List all normalized event types' })
+      @Get('workspaces/:workspaceId/event-types')
+      async getEventTypes() {
+        return this.eventsService.getEventTypes();
+      }
+    
     }
