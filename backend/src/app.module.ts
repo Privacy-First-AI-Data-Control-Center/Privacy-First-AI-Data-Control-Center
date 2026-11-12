@@ -24,6 +24,7 @@ import { HealthModule } from './health/health.module.js';
 import { PolicyModule } from './policy/policy.module.js';
 import { DeletionRequestsModule } from './deletion-requests/deletion-requests.module.js';
 import { PolicyDecisionModule } from './policy-decision/policy-decision.module.js';
+import { ExportModule } from './export/export.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -34,7 +35,7 @@ import { PolicyDecisionModule } from './policy-decision/policy-decision.module.j
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, DeletionRequestsModule,PolicyModule, PolicyDecisionModule],
+  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, DeletionRequestsModule, PolicyModule, ExportModule,PolicyDecisionModule],
   controllers: [AppController],
   providers: [AppService],
 })
