@@ -1,9 +1,10 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Events } from "../../events/entities/event.entity.js";
 import type { Relation } from "typeorm";
 import { PolicyVersions } from "../../policy/entities/policy-version.entity.js";
 import { RuleEffect } from "../../policy/enums/policy-rule.enum.js";
 import { EvaluationStatus } from "../enum/evaluation-status.enum.js";
+import { EnforcementAction } from "../../enforcement-action/entities/enforcement-action.entity.js";
 @Entity('policy_decision')
 export class PolicyDecision {
     @PrimaryGeneratedColumn()
@@ -28,5 +29,7 @@ export class PolicyDecision {
     updatedAt:Date;
     @DeleteDateColumn()
     deletedAt:Date;
+    @OneToMany(()=>EnforcementAction,(enforcementAction)=>enforcementAction.policyDecision)
+    enforcementActions:EnforcementAction[];
 
 }
