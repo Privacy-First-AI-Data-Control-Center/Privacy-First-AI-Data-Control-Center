@@ -19,7 +19,7 @@ export class RetentionJobService {
     ){}
 
 
-    @Cron(CronExpression.EVERY_DAY_AT_2AM)
+    @Cron('45 19 * * *', { timeZone: 'Asia/Dhaka' })
     async runForAllWorkspaces(){
         const settings = await this.retentionRepo.find({
             where:{

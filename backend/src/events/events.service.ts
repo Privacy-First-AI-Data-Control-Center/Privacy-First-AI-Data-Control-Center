@@ -198,5 +198,68 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
           throw new NotFoundException(`Event with ID ${eventId} not found`);                                                                                                               
         }                                                                                                                                                                                  
         return event;                                                                                                                                                                      
-      }                                                                                                                                                                                    
+      } 
+
+      async getEventAttributes (eventId : string ){
+        const event =await this.eventRepo.findOne({
+          where :{eventId} ,
+          relations :{attributes:true}
+
+        })
+        if(!event)
+        {
+          throw new NotFoundException(`Event ID : ${eventId} not found `)
+        }
+       return event.attributes ;
+      }
+     async getEventTimeline(eventId :string){
+
+      const event = await this.eventRepo.findOne({where : {eventId}})
+       if(!event)
+        {
+          throw new NotFoundException(`Event ID : ${eventId} not found `)
+        }
+
+        const latencyMs = Math.max(0, event.receivedAt.getTime() - event.occurredAt.getTime());
+
+        return({
+          eventId :event.eventId ,
+         occuredAt : event.occurredAt ,
+         receivedAt :event.receivedAt  ,
+         latencyMs ,
+         schemaVersion: event.schemaVersion,
+        })
+
+
+     }
+
+     async getStatistics (workspaceId :number ,from ?:string ,to? :string){
+      const db = await this.eventRepo
+      .createQueryBuilder('event')
+      .leftJoin('event.eventType' ,'eventType')
+      .where('event.workspaceId=:workspaceId' ,{workspaceId})
+      if(from){
+        db.andWhere(`event.occurredAt >= :from ` , { from : new Date (from)})}
+         if (to) {db.andWhere('event.occurredAt <= :to', { to: new Date(to) });
+      }
+      const totalCount =await db.getCount()
+      const categoryStats =await db.select('eventType.category' ,'category').addSelect('Count(event.id)' ,'count').groupBy('eventType.category').getRawMany()
+      const severityStats = await db                                                                                                                                                     
+          .select('event.severity', 'severity')                                                                                                                                            
+          .addSelect('COUNT(event.id)', 'count')                                                                                                                                           
+          .groupBy('event.severity')                                                                                                                                                       
+          .getRawMany();
+
+
+          return {                                                                                                                                                                           
+          totalEvents: totalCount,                                                                                                                                                         
+          byCategory: categoryStats,                                                                                                                                                       
+          bySeverity: severityStats,                                                                                                                                                       
+        };
+     }
+     async getEventTypes() {                                                                                                                                                              
+        return this.eventTypeRepo.find({                                                                                                                                                   
+          order: { category: 'ASC', code: 'ASC' },                                                                                                                                         
+        });                                                                                                                                                                                
+      }    
     } 

@@ -22,6 +22,7 @@ import { SensitiveDataTypeModule } from './sensitive-data-type/sensitive-data-ty
 import { FindingModule } from './finding/finding.module.js';
 import { HealthModule } from './health/health.module.js';
 import { PolicyModule } from './policy/policy.module.js';
+import { DeletionRequestsModule } from './deletion-requests/deletion-requests.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -32,7 +33,7 @@ import { PolicyModule } from './policy/policy.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, PolicyModule],
+  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, DeletionRequestsModule,PolicyModule],
   controllers: [AppController],
   providers: [AppService],
 })
