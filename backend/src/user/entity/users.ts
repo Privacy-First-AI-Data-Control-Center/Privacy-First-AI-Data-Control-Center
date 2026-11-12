@@ -3,6 +3,8 @@ import { Role } from "../enum/role.js";
 import { AccountStatus } from "../enum/account-status.js";
 import { Workspaces } from "../../workspace/entity/workspaces.js";
 import { WorkspaceMembers } from "../../workspace-member/entity/workspace-members.js";
+import { Policies } from "../../policy/entities/policy.entity.js";
+import { PolicyVersions } from "../../policy/entities/policy-version.entity.js";
 
 @Entity()
 export class Users{
@@ -65,4 +67,8 @@ export class Users{
     workspaces: Relation<Workspaces>[];
     @OneToMany(()=> WorkspaceMembers, (workspaceMembers)=> workspaceMembers.user)
     workspaceMembers: Relation<WorkspaceMembers>[];
+    @OneToMany(()=>Policies,(policy)=>policy.Users)
+    policy:Relation<Policies>[];
+    @OneToMany(()=>PolicyVersions,(policy_versions)=>policy_versions.Users)
+    policy_versions:Relation<PolicyVersions>[]; 
 }

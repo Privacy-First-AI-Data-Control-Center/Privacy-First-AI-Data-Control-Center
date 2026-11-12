@@ -21,6 +21,7 @@ import { AgentModule } from './agent/agent.module.js';
 import { SensitiveDataTypeModule } from './sensitive-data-type/sensitive-data-type.module.js';
 import { FindingModule } from './finding/finding.module.js';
 import { HealthModule } from './health/health.module.js';
+import { PolicyModule } from './policy/policy.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -31,7 +32,7 @@ import { HealthModule } from './health/health.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule],
+  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, PolicyModule],
   controllers: [AppController],
   providers: [AppService],
 })
