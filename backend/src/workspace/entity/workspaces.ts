@@ -8,6 +8,7 @@ import { Devices } from "../../device/entity/devices.js";
 import { Alerts } from "../../alert/entities/alerts.entity.js";
 import { AuditLogs } from "../../audit-logs/entities/audit-logs.entity.js";
 import { RetentionSettings } from "../../retention/entities/retention-settings.entity.js";
+import { Policies } from "../../policy/entities/policy.entity.js";
 
 @Entity()
 export class Workspaces{
@@ -63,5 +64,9 @@ export class Workspaces{
     @OneToMany(() => RetentionSettings, (setting) => setting.workspace)
     retentionSettings: Relation<RetentionSettings>[];
      //.............
+
+     //tasin
+     @OneToMany(()=>Policies,(policy)=>policy.workspace)
+     policy:Relation<Policies>[];  
     
 }

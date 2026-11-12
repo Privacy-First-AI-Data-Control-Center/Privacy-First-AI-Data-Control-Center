@@ -120,6 +120,6 @@ import {
         // Cascade: Saving an Event automatically persists its child EventAttributes                                                                                                       
         @OneToMany(() => EventAttributes, (attr) => attr.event, { cascade: true })                                                                                                         
         attributes: Relation<EventAttributes>[];  
-        @OneToMany(()=>Findings,(finding)=>finding.sensetiveDataType)
-        finding:Relation<Findings[]>                                                                                                                                         
+        @OneToMany(()=>Findings,(finding)=>finding.event)
+        finding:Relation<Findings>[];                                                                                                                                         
     }

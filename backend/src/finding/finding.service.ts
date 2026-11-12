@@ -70,6 +70,4 @@ export class FindingService {
             throw new BadRequestException();
         }
     }
-
-
 }
