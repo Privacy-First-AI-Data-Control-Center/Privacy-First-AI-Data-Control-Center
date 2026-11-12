@@ -14,6 +14,7 @@ import {
     import { EventSources } from "./event-source.entity.js";                                                                                                                               
     import { EventAttributes } from "./event-attribute.entity.js";                                                                                                                         
     import { Findings } from "../../finding/entities/finding.entity.js";
+import { PolicyDecision } from "../../policy-decision/entities/policy-decision.entity.js";
                                                                                                                                                                                            
     @Entity()                                                                                                                                                                              
     export class Events {                                                                                                                                                                  
@@ -121,5 +122,7 @@ import {
         @OneToMany(() => EventAttributes, (attr) => attr.event, { cascade: true })                                                                                                         
         attributes: Relation<EventAttributes>[];  
         @OneToMany(()=>Findings,(finding)=>finding.event)
-        finding:Relation<Findings>[];                                                                                                                                         
+        finding:Relation<Findings>[]; 
+        @OneToMany(()=>PolicyDecision,(policy_decision)=>policy_decision.event)
+        policy_decisions:Relation<PolicyDecision>[];                                                                                                                                        
     }

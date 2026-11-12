@@ -10,6 +10,7 @@ import { WorkspaceStatus } from '../workspace/enum/workspace-status.js';
 import { RuleEffect } from './enums/policy-rule.enum.js';
 import { PolicyRules } from './entities/policy-rule.entity.js';
 import { partialUpdatePolicyDto } from './dto/partial-update-policy.dto.js';
+import { TestPolicyDto } from './dto/test-policy.dto.js';
 
 @Controller('workspace/:workspaceId/policy')
 export class PolicyController {
@@ -51,7 +52,7 @@ export class PolicyController {
   }
   @Post('/:policyId/test')
   @UseGuards(JwtGuard)
-  async TestPolicy(@Param('workspaceId',ParseIntPipe)workspaceId:number,@Param('policyId',ParseIntPipe)policyId:number,@Body()dto:any):Promise<{versionId:number,decision:RuleEffect,reason:string,matchedRuleIds?:number[],}>{
+  async TestPolicy(@Param('workspaceId',ParseIntPipe)workspaceId:number,@Param('policyId',ParseIntPipe)policyId:number,@Body()dto:TestPolicyDto):Promise<{versionId:number,decision:RuleEffect,reason:string,matchedRuleIds?:number[],}>{
     return this.policyService.test(workspaceId,policyId,dto);
   }
   @Get('/:policyId/versions')
