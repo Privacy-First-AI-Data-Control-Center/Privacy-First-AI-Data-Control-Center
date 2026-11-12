@@ -3,6 +3,7 @@ import { Policies } from "./policy.entity.js";
 import type { Relation } from "typeorm";
 import { Users } from "../../user/entity/users.js";
 import { PolicyRules } from "./policy-rule.entity.js";
+import { PolicyDecision } from "../../policy-decision/entities/policy-decision.entity.js";
 @Entity('policy_versions')
 export class PolicyVersions{
     @PrimaryGeneratedColumn()
@@ -30,4 +31,7 @@ export class PolicyVersions{
 
     @OneToMany(()=>PolicyRules,(policy_rules)=>policy_rules.policyVersion)
     policy_rules:Relation<PolicyRules>[]; 
+
+    @OneToMany(()=>PolicyDecision,(policy_decision)=>policy_decision.policyVersion)
+    policy_decisions:Relation<PolicyDecision>[];
 }

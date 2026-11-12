@@ -23,6 +23,7 @@ import { FindingModule } from './finding/finding.module.js';
 import { HealthModule } from './health/health.module.js';
 import { PolicyModule } from './policy/policy.module.js';
 import { DeletionRequestsModule } from './deletion-requests/deletion-requests.module.js';
+import { PolicyDecisionModule } from './policy-decision/policy-decision.module.js';
 import { ExportModule } from './export/export.module.js';
 
 @Module({
@@ -34,7 +35,7 @@ import { ExportModule } from './export/export.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, DeletionRequestsModule, PolicyModule, ExportModule],
+  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, DeletionRequestsModule, PolicyModule, ExportModule,PolicyDecisionModule],
   controllers: [AppController],
   providers: [AppService],
 })
