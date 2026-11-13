@@ -26,6 +26,7 @@ import { DeletionRequestsModule } from './deletion-requests/deletion-requests.mo
 import { PolicyDecisionModule } from './policy-decision/policy-decision.module.js';
 import { ExportModule } from './export/export.module.js';
 import { EnforcementActionModule } from './enforcement-action/enforcement-action.module.js';
+import { RiskRuleModule } from './risk-rule/risk-rule.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -36,7 +37,7 @@ import { EnforcementActionModule } from './enforcement-action/enforcement-action
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, DeletionRequestsModule, PolicyModule, ExportModule,PolicyDecisionModule, EnforcementActionModule],
+  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, DeletionRequestsModule, PolicyModule, ExportModule,PolicyDecisionModule, EnforcementActionModule, RiskRuleModule],
   controllers: [AppController],
   providers: [AppService],
 })
