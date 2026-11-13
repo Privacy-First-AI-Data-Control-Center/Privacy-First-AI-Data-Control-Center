@@ -5,8 +5,8 @@ export class CreateIntegrationDto {
 
     @IsNumber()
     @IsPositive()
-    @IsNotEmpty()
-    workspaceId :number
+    @IsOptional()
+    workspaceId?:number
     @IsNumber()
     @IsPositive()
     @IsNotEmpty()
