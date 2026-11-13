@@ -22,7 +22,7 @@ export class RiskRuleController {
   }
   @Get('/:ruleId')
   @UseGuards(JwtGuard)
-  GetRiskRule(@Param('worksapceId',ParseIntPipe)workspaceId:number,@Param('ruleId',ParseIntPipe)ruleId:number):Promise<RiskRule>{
+  GetRiskRule(@Param('workspaceId',ParseIntPipe)workspaceId:number,@Param('ruleId',ParseIntPipe)ruleId:number):Promise<RiskRule>{
     return this.riskRuleService.findOne(workspaceId,ruleId);
   }
   @Patch(':ruleId')
