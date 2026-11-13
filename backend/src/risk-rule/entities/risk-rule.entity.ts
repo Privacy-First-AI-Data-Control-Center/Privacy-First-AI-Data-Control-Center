@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Workspaces } from "../../workspace/entity/workspaces.js";
 import type { Relation } from "typeorm";
 import { RiskSeverity } from "../enum/risk-severity.enum.js";
+import { RiskFinding } from "../../risk-finding/entities/risk-finding.entity.js";
 @Entity('risk_rules')
 export class RiskRule{
     @PrimaryGeneratedColumn()
@@ -25,4 +26,6 @@ export class RiskRule{
     updatedAt:Date;
     @DeleteDateColumn()
     deletedAt:Date;
+    @OneToMany(()=>RiskFinding,(risk_findings)=>risk_findings.riskRule)
+    risk_findings:Relation<RiskFinding>
 }

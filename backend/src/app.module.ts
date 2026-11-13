@@ -27,6 +27,7 @@ import { PolicyDecisionModule } from './policy-decision/policy-decision.module.j
 import { ExportModule } from './export/export.module.js';
 import { EnforcementActionModule } from './enforcement-action/enforcement-action.module.js';
 import { RiskRuleModule } from './risk-rule/risk-rule.module.js';
+import { RiskFindingModule } from './risk-finding/risk-finding.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -37,7 +38,7 @@ import { RiskRuleModule } from './risk-rule/risk-rule.module.js';
     url: process.env.DATABASE_URL,
     autoLoadEntities: true,
     synchronize: true
-  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, DeletionRequestsModule, PolicyModule, ExportModule,PolicyDecisionModule, EnforcementActionModule, RiskRuleModule],
+  }), ScheduleModule.forRoot(), UserModule, AuthModule, EmailModule, WorkspaceModule, WorkspaceMemberModule, AlertModule, AuditLogsModule, ConnectorsModule, EventsModule, IntegrationsModule, RetentionModule, DeviceModule, AgentModule, SensitiveDataTypeModule, FindingModule, HealthModule, DeletionRequestsModule, PolicyModule, ExportModule,PolicyDecisionModule, EnforcementActionModule, RiskRuleModule, RiskFindingModule],
   controllers: [AppController],
   providers: [AppService],
 })
