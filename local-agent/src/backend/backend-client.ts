@@ -71,6 +71,7 @@ export interface FlushQueueBatchResult {
 export interface BackendClientOptions {
   baseUrl: string;
   agentAuthService: AgentAuthService;
+  workspaceId?: number;
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
 }
@@ -83,12 +84,14 @@ export interface BackendClientOptions {
 export class BackendClient {
   private readonly baseUrl: string;
   private readonly agentAuth: AgentAuthService;
+  private readonly workspaceId?: number;
   private readonly timeoutMs: number;
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: BackendClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/+$/, '');
     this.agentAuth = options.agentAuthService;
+    this.workspaceId = options.workspaceId;
     this.timeoutMs = options.timeoutMs ?? 10000;
     this.fetchImpl = options.fetchImpl ?? globalThis.fetch;
   }
@@ -207,9 +210,11 @@ export class BackendClient {
   public async fetchActivePolicies(): Promise<
     BackendApiResponse<Record<string, unknown>>
   > {
+    const query =
+      this.workspaceId !== undefined ? `?workspaceId=${this.workspaceId}` : '';
     return this.request<Record<string, unknown>>({
       method: 'GET',
-      path: AGENT_API_PATHS.ACTIVE_POLICIES,
+      path: `${AGENT_API_PATHS.ACTIVE_POLICIES}${query}`,
       requiresAgentCredential: true,
     });
   }
@@ -226,6 +231,7 @@ export class BackendClient {
       requiresAgentCredential: true,
       body: {
         deviceId: this.agentAuth.getDeviceId(),
+        ...(this.workspaceId !== undefined ? { workspaceId: this.workspaceId } : {}),
         sentAt: new Date().toISOString(),
         events,
       },

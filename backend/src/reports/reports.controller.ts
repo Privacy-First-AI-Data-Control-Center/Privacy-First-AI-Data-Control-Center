@@ -19,7 +19,7 @@
     import { UpdateReportDto } from './dto/update-report.dto.js';                                                                                                                          
     import { JwtGuard } from '../auth/jwtGuard.guard.js';                                                                                                                                  
                                                                                                                                                                                            
-    @ApiTags('Reports (Shohag)')                                                                                                                                                           
+    @ApiTags('Reports')                                                                                                                                                           
     @Controller('workspaces/:workspaceId/reports')                                                                                                                                         
     @UseGuards(JwtGuard)                                                                                                                                                                   
     export class ReportsController {                                                                                                                                                       

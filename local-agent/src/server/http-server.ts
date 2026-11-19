@@ -95,6 +95,7 @@ export async function buildServer(
   const backendClient = new BackendClient({
     baseUrl: config.backendBaseUrl,
     agentAuthService,
+    workspaceId: config.agentWorkspaceId,
     timeoutMs: config.backendTimeoutMs,
   });
 

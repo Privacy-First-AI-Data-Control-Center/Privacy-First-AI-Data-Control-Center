@@ -27,7 +27,7 @@ export class DashboardService {
     {
         const onedayago= new Date(Date.now()-24*60*60*1000)
 
-        const totalEvent= await this.eventRepo.count({where:{id:workspaceId}})
+        const totalEvent= await this.eventRepo.count({where:{workspace:{id:workspaceId}}})
 
         const eventLast24h=await this.eventRepo.count({
             where:{workspace:

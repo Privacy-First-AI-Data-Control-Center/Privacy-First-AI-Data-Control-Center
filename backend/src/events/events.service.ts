@@ -18,6 +18,17 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
     import { EnforcementActionType, EnforcementOutcome } from '../enforcement-action/enum/enforcement-action.enum.js';
     import { PolicyVersions } from '../policy/entities/policy-version.entity.js';
     import { RuleEffect } from '../policy/enums/policy-rule.enum.js';
+    import { Alerts } from '../alert/entities/alerts.entity.js';
+    import { AlertType } from '../alert/enum/alert-type.js';
+    import { AlertSeverity } from '../alert/enum/alert-severity.js';
+    import { AlertStatus } from '../alert/enum/alert-status.js';
+    import { RiskRule } from '../risk-rule/entities/risk-rule.entity.js';
+    import { RiskSeverity } from '../risk-rule/enum/risk-severity.enum.js';
+    import { RiskFinding } from '../risk-finding/entities/risk-finding.entity.js';
+    import { SensitiveDataType } from '../sensitive-data-type/entity/SensitiveDataType.js';
+    import { Severity } from '../sensitive-data-type/enum/Severity.js';
+    import { Findings } from '../finding/entities/finding.entity.js';
+    import { FindingStatus } from '../finding/enum/finding-status.enum.js';
     import { AgentEventBatchDto } from './dto/agent-event-batch.dto.js';
     import { QueryEventsDto } from './dto/query-event.dto.js';
   
@@ -48,11 +59,21 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
         private readonly enforcementActionRepo: Repository<EnforcementAction>,
         @InjectRepository(PolicyVersions)
         private readonly policyVersionRepo: Repository<PolicyVersions>,
+        @InjectRepository(Alerts)
+        private readonly alertRepo: Repository<Alerts>,
+        @InjectRepository(RiskRule)
+        private readonly riskRuleRepo: Repository<RiskRule>,
+        @InjectRepository(RiskFinding)
+        private readonly riskFindingRepo: Repository<RiskFinding>,
+        @InjectRepository(SensitiveDataType)
+        private readonly sensitiveDataTypeRepo: Repository<SensitiveDataType>,
+        @InjectRepository(Findings)
+        private readonly findingRepo: Repository<Findings>,
       ) {}
   
      
       async processBatch(batchDto: AgentEventBatchDto) {
-        const { deviceId, sentAt, events } = batchDto;
+        const { deviceId, sentAt, events, workspaceId: requestedWorkspaceId } = batchDto;
         let acceptedCount = 0;
         let duplicateCount = 0;
 
@@ -61,7 +82,15 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
           relations: { workspace: true },
         });
 
-        let workspace: Workspaces | null = device?.workspace ?? null;
+        let workspace: Workspaces | null = null;
+        if (requestedWorkspaceId !== undefined) {
+          workspace = await this.workspaceRepo.findOne({
+            where: { id: requestedWorkspaceId },
+          });
+        }
+        if (!workspace) {
+          workspace = device?.workspace ?? null;
+        }
         if (!workspace) {
           workspace = await this.workspaceRepo.findOne({
             where: { workspaceStatus: WorkspaceStatus.ACTIVE },
@@ -88,6 +117,9 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
           });
           device = await this.deviceRepo.save(device);
         } else {
+          if (requestedWorkspaceId !== undefined && device.workspace?.id !== workspace.id) {
+            device.workspace = workspace;
+          }
           device.lastSeenAt = new Date();
           await this.deviceRepo.save(device);
         }
@@ -261,6 +293,94 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
                 }),
               );
             }
+
+            // Auto-create RiskFinding, SensitiveData Finding, and Alert so Dashboard shows real-time violations
+            const isBlock = policyDecisionStr === 'BLOCK';
+            const reasonText =
+              typeof meta?.policyReason === 'string' && meta.policyReason
+                ? meta.policyReason
+                : `Policy violation (${policyDecisionStr})`;
+            const matchedVal =
+              typeof meta?.matchedValue === 'string' && meta.matchedValue
+                ? meta.matchedValue
+                : item.summary;
+            const policyTitle =
+              typeof meta?.policyName === 'string' && meta.policyName
+                ? meta.policyName
+                : 'Workspace Privacy Policy';
+
+            let riskRule = await this.riskRuleRepo.findOne({
+              where: {
+                workspace: { id: workspace.id },
+                name: 'Policy Violation — Sensitive Resource Access',
+              },
+            });
+            if (!riskRule) {
+              riskRule = await this.riskRuleRepo.save(
+                this.riskRuleRepo.create({
+                  workspace,
+                  name: 'Policy Violation — Sensitive Resource Access',
+                  condition: { source: 'local-agent-policy-engine' },
+                  scoreDelta: 90,
+                  severity: RiskSeverity.HIGH,
+                  enabled: true,
+                }),
+              );
+            }
+
+            const savedRiskFinding = await this.riskFindingRepo.save(
+              this.riskFindingRepo.create({
+                event: savedEvent,
+                riskRule,
+                riskScore: isBlock ? 90 : 50,
+                severity: isBlock ? RiskSeverity.HIGH : RiskSeverity.MEDIUM,
+                explanation: `${policyTitle}: ${reasonText} (${matchedVal})`,
+              }),
+            );
+
+            let sensitiveType = await this.sensitiveDataTypeRepo.findOne({
+              where: { code: 'ENV_SECRET_FILE' },
+            });
+            if (!sensitiveType) {
+              sensitiveType = await this.sensitiveDataTypeRepo.save(
+                this.sensitiveDataTypeRepo.create({
+                  code: 'ENV_SECRET_FILE',
+                  name: 'Environment & Secret File',
+                  detectorKing: 'POLICY_RULE',
+                  severity: Severity.HIGH,
+                  description: 'Detected access attempt to protected .env or credential files',
+                }),
+              );
+            }
+
+            await this.findingRepo.save(
+              this.findingRepo.create({
+                event: savedEvent,
+                sensetiveDataType: sensitiveType,
+                locationReference: matchedVal.slice(0, 250),
+                confidence: 100,
+                matchCount: 1,
+                maskedEvidence: `[BLOCKED] ${matchedVal}`.slice(0, 250),
+                status: FindingStatus.OPEN,
+                recemmendation: 'Review AI agent access attempt and rotate secrets if exposed.',
+                DetectedAt: new Date(item.occurredAt),
+              }),
+            );
+
+            await this.alertRepo.save(
+              this.alertRepo.create({
+                workspace,
+                workspaceId: workspace.id,
+                riskFindingId: savedRiskFinding.id,
+                assignedUser: null,
+                assignedUserId: null,
+                alertType: AlertType.POLICY_VIOLATION,
+                title: `[${policyDecisionStr}] ${policyTitle}: ${matchedVal}`.slice(0, 200),
+                severity: isBlock ? AlertSeverity.HIGH : AlertSeverity.MEDIUM,
+                status: AlertStatus.OPEN,
+                resolvedAt: null,
+              }),
+            );
           }
 
           acceptedCount++;                                                                                                                                                                 

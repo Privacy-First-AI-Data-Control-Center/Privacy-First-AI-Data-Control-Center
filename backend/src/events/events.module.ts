@@ -13,9 +13,14 @@ import { ConnectorTypes } from '../connectors/entities/connector.entity.js';
 import { PolicyDecision } from '../policy-decision/entities/policy-decision.entity.js';
 import { EnforcementAction } from '../enforcement-action/entities/enforcement-action.entity.js';
 import { PolicyVersions } from '../policy/entities/policy-version.entity.js';
+import { Alerts } from '../alert/entities/alerts.entity.js';
+import { RiskRule } from '../risk-rule/entities/risk-rule.entity.js';
+import { RiskFinding } from '../risk-finding/entities/risk-finding.entity.js';
+import { SensitiveDataType } from '../sensitive-data-type/entity/SensitiveDataType.js';
+import { Findings } from '../finding/entities/finding.entity.js';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Events ,EventTypes,EventSources,EventAttributes ,Workspaces ,Integrations, Devices, ConnectorTypes, PolicyDecision, EnforcementAction, PolicyVersions])],
+  imports:[TypeOrmModule.forFeature([Events ,EventTypes,EventSources,EventAttributes ,Workspaces ,Integrations, Devices, ConnectorTypes, PolicyDecision, EnforcementAction, PolicyVersions, Alerts, RiskRule, RiskFinding, SensitiveDataType, Findings])],
   controllers: [EventsController],
   providers: [EventsService],
   exports:[TypeOrmModule ,EventsService],

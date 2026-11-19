@@ -66,6 +66,11 @@ export const EnvSchema = z
       .min(1)
       .default('local-unregistered-device'),
 
+    AGENT_WORKSPACE_ID: z.preprocess(
+      (val) => (val === '' || val === undefined || val === null ? undefined : val),
+      z.coerce.number().int().positive().optional(),
+    ),
+
     AGENT_CREDENTIAL_TOKEN: z.string().trim().optional(),
 
     BACKEND_TIMEOUT_MS: z.coerce

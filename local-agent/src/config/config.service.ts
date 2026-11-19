@@ -85,6 +85,10 @@ export class ConfigService {
     return this.config.AGENT_DEVICE_ID;
   }
 
+  public get agentWorkspaceId(): number | undefined {
+    return this.config.AGENT_WORKSPACE_ID;
+  }
+
   public get agentCredentialToken(): string | undefined {
     return this.config.AGENT_CREDENTIAL_TOKEN;
   }
