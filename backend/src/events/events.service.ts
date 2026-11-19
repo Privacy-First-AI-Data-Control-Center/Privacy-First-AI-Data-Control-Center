@@ -7,6 +7,17 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
     import { EventAttributes } from './entities/event-attribute.entity.js';
     import { Workspaces } from '../workspace/entity/workspaces.js';
     import { WorkspaceStatus } from '../workspace/enum/workspace-status.js';
+    import { Devices } from '../device/entity/devices.js';
+    import { DeviceStatus } from '../device/enum/device-status.js';
+    import { Integrations } from '../integrations/entities/integration.entity.js';
+    import { IntegrationStatus } from '../integrations/enum/integration-status.js';
+    import { ConnectorTypes } from '../connectors/entities/connector.entity.js';
+    import { PolicyDecision } from '../policy-decision/entities/policy-decision.entity.js';
+    import { EvaluationStatus } from '../policy-decision/enum/evaluation-status.enum.js';
+    import { EnforcementAction } from '../enforcement-action/entities/enforcement-action.entity.js';
+    import { EnforcementActionType, EnforcementOutcome } from '../enforcement-action/enum/enforcement-action.enum.js';
+    import { PolicyVersions } from '../policy/entities/policy-version.entity.js';
+    import { RuleEffect } from '../policy/enums/policy-rule.enum.js';
     import { AgentEventBatchDto } from './dto/agent-event-batch.dto.js';
     import { QueryEventsDto } from './dto/query-event.dto.js';
   
@@ -25,6 +36,18 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
         private readonly eventAttrRepo: Repository<EventAttributes>,
         @InjectRepository(Workspaces)
         private readonly workspaceRepo: Repository<Workspaces>,
+        @InjectRepository(Devices)
+        private readonly deviceRepo: Repository<Devices>,
+        @InjectRepository(Integrations)
+        private readonly integrationRepo: Repository<Integrations>,
+        @InjectRepository(ConnectorTypes)
+        private readonly connectorTypeRepo: Repository<ConnectorTypes>,
+        @InjectRepository(PolicyDecision)
+        private readonly policyDecisionRepo: Repository<PolicyDecision>,
+        @InjectRepository(EnforcementAction)
+        private readonly enforcementActionRepo: Repository<EnforcementAction>,
+        @InjectRepository(PolicyVersions)
+        private readonly policyVersionRepo: Repository<PolicyVersions>,
       ) {}
   
      
@@ -32,18 +55,41 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
         const { deviceId, sentAt, events } = batchDto;
         let acceptedCount = 0;
         let duplicateCount = 0;
-  
-       
-        let workspace = await this.workspaceRepo.findOne({
-          where: { workspaceStatus: WorkspaceStatus.ACTIVE },
-          order: { id: 'ASC' },
+
+        let device = await this.deviceRepo.findOne({
+          where: { deviceName: deviceId },
+          relations: { workspace: true },
         });
+
+        let workspace: Workspaces | null = device?.workspace ?? null;
+        if (!workspace) {
+          workspace = await this.workspaceRepo.findOne({
+            where: { workspaceStatus: WorkspaceStatus.ACTIVE },
+            order: { id: 'ASC' },
+          });
+        }
         if (!workspace) {
           workspace = await this.workspaceRepo.findOne({ order: { id: 'ASC' } });
         } 
   
         if (!workspace) { 
           throw new NotFoundException('No active workspace found to bind events to');
+        }
+
+        if (!device) {
+          device = this.deviceRepo.create({
+            workspace,
+            deviceName: deviceId,
+            hostName: deviceId,
+            platform: process.platform,
+            osVersion: 'local-agent',
+            deviceStatus: DeviceStatus.ACTIVE,
+            lastSeenAt: new Date(),
+          });
+          device = await this.deviceRepo.save(device);
+        } else {
+          device.lastSeenAt = new Date();
+          await this.deviceRepo.save(device);
         }
   
         for (const item of events) { 
@@ -111,13 +157,41 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
           }                                                                                                                                                                                
                                                                                                                                                                                            
                                                                                                                                   
-          const eventRecord = this.eventRepo.create({                                                                                                                                      
-            eventId: item.eventId,                                                                                                                                                         
-            dedupeKey: item.dedupeKey,                                                                                                                                                     
-            workspace: workspace,                                                                                                                                                          
-            eventType: eventType,                                                                                                                                                          
-            eventSource: eventSource,                                                                                                                                                      
-            deviceId: deviceId,                                                                                                                                                            
+          let integration: Integrations | null = null;
+          const connectorSlug = item.source.integration || 'claude-code';
+          const connectorType = await this.connectorTypeRepo.findOne({
+            where: { slug: connectorSlug },
+          });
+          if (connectorType) {
+            integration = await this.integrationRepo.findOne({
+              where: {
+                workspace: { id: workspace.id },
+                connectorType: { id: connectorType.id },
+                deviceId,
+              },
+            });
+            if (!integration) {
+              integration = this.integrationRepo.create({
+                workspace,
+                connectorType,
+                deviceId,
+                displayName: `${connectorType.displayName} (${deviceId})`,
+                version: item.source.connectorVersion || '1.0.0',
+                status: IntegrationStatus.ACTIVE,
+                connectedAt: new Date(),
+              });
+              integration = await this.integrationRepo.save(integration);
+            }
+          }
+
+          const eventRecord = this.eventRepo.create({
+            eventId: item.eventId,
+            dedupeKey: item.dedupeKey,
+            workspace: workspace,
+            integration: integration ?? undefined,
+            eventType: eventType,
+            eventSource: eventSource,
+            deviceId: deviceId,
             occurredAt: new Date(item.occurredAt),                                                                                                                                         
             receivedAt: new Date(),                                                                                                                                                        
             severity: item.severity || 'INFO',                                                                                                                                             
@@ -128,7 +202,67 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
             attributes: attributes,                                                                                                                                                        
           });                                                                                                                                                                              
                                                                                                                                                                                            
-          await this.eventRepo.save(eventRecord);                                                                                                                                          
+          const savedEvent = await this.eventRepo.save(eventRecord);
+
+          const meta = item.metadata as Record<string, unknown> | undefined;
+          const policyDecisionStr =
+            typeof meta?.policyDecision === 'string' ? meta.policyDecision.toUpperCase() : null;
+          if (policyDecisionStr === 'BLOCK' || policyDecisionStr === 'WARN') {
+            let policyVersion: PolicyVersions | null = null;
+            const pvId = Number(meta?.policyVersionId);
+            const pId = Number(meta?.policyId);
+
+            if (Number.isInteger(pvId) && pvId > 0) {
+              policyVersion = await this.policyVersionRepo.findOne({ where: { id: pvId } });
+            }
+            if (!policyVersion && Number.isInteger(pId) && pId > 0) {
+              policyVersion = await this.policyVersionRepo.findOne({
+                where: { policy: { id: pId } },
+                order: { versionNumber: 'DESC' },
+              });
+            }
+
+            if (policyVersion) {
+              const savedDecision = await this.policyDecisionRepo.save(
+                this.policyDecisionRepo.create({
+                  event: savedEvent,
+                  policyVersion,
+                  decision:
+                    policyDecisionStr === 'BLOCK' ? RuleEffect.BLOCK : RuleEffect.WARN,
+                  reason:
+                    typeof meta?.policyReason === 'string' && meta.policyReason
+                      ? meta.policyReason
+                      : `Matched active policy (${policyDecisionStr})`,
+                  evaluationStatus: EvaluationStatus.SUCCESS,
+                  evaluationLatencyMs:
+                    typeof meta?.evaluationLatencyMs === 'number'
+                      ? Math.max(0, Math.round(meta.evaluationLatencyMs))
+                      : 1,
+                }),
+              );
+
+              await this.enforcementActionRepo.save(
+                this.enforcementActionRepo.create({
+                  policyDecision: savedDecision,
+                  actionType:
+                    policyDecisionStr === 'BLOCK'
+                      ? EnforcementActionType.BLOCK
+                      : EnforcementActionType.WARN,
+                  outcome: EnforcementOutcome.SUCCESS,
+                  evidence: {
+                    policyId: meta?.policyId ?? null,
+                    policyName: meta?.policyName ?? null,
+                    ruleId: meta?.ruleId ?? null,
+                    matchedValue: meta?.matchedValue ?? null,
+                    deviceId,
+                    connector: item.source.integration ?? 'claude-code',
+                  },
+                  performedAt: new Date(item.occurredAt),
+                }),
+              );
+            }
+          }
+
           acceptedCount++;                                                                                                                                                                 
         }                                                                                                                                                                                  
                                                                                                                                                                                            

@@ -3,7 +3,7 @@ import type { AgentEnrollmentState } from '../backend/agent-auth.service.js';
 
 export interface HealthStatusPayload {
   status: 'ok' | 'degraded';
-  service: 'local-agent-claude-hook';
+  service: 'local-agent';
   version: string;
   uptimeSeconds: number;
   timestamp: string;
@@ -18,7 +18,7 @@ export interface HealthServiceOptions {
 }
 
 export class HealthService {
-  private readonly serviceName = 'local-agent-claude-hook' as const;
+  private readonly serviceName = 'local-agent' as const;
   private readonly version: string;
   private readonly getQueueStats?: () => QueueStats;
   private readonly getEnrollmentState?: () => AgentEnrollmentState;

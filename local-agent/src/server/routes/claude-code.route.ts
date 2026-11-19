@@ -5,11 +5,13 @@ import {
   ClaudeCodeHookHandler,
   ClaudeCodeHookPayloadSchema,
 } from '../../connectors/claude-code/hook-handler.js';
+import type { PolicyEngineService } from '../../policy/policy-engine.service.js';
 import { createWebhookAuthPreHandler } from '../../security/webhook-auth.js';
 
 export interface ClaudeCodeRouteOptions {
   configService: ConfigService;
   hookHandler?: ClaudeCodeHookHandler;
+  policyEngine?: PolicyEngineService;
 }
 
 /**
@@ -22,13 +24,14 @@ const HOOK_ROUTES: ReadonlyArray<{ path: string; connector: ConnectorSlug }> = [
   { path: '/hooks/claude-code', connector: 'claude-code' },
   { path: '/hooks/antigravity', connector: 'antigravity' },
   { path: '/hooks/gemini-cli', connector: 'gemini-cli' },
+  { path: '/hooks/cursor', connector: 'cursor' },
 ];
 
 export async function registerClaudeCodeRoute(
   app: FastifyInstance,
   options: ClaudeCodeRouteOptions,
 ): Promise<void> {
-  const { configService } = options;
+  const { configService, policyEngine } = options;
   const hookHandler = options.hookHandler ?? new ClaudeCodeHookHandler();
   const authPreHandler = createWebhookAuthPreHandler(
     configService.localWebhookToken,
@@ -63,7 +66,58 @@ export async function registerClaudeCodeRoute(
           });
         }
 
-        const receipt = await hookHandler.handleHookPayload(parseResult.data, connector);
+        const evaluation = policyEngine?.evaluateHook(parseResult.data, connector);
+        const receipt = await hookHandler.handleHookPayload(parseResult.data, connector, evaluation);
+
+        if (evaluation && evaluation.decision === 'BLOCK') {
+          const reason =
+            evaluation.reason ?? 'Blocked by active workspace privacy policy.';
+
+          request.log.warn(
+            {
+              receiptId: receipt.receiptId,
+              eventId: receipt.eventId,
+              connector: receipt.connector,
+              hookEventName: receipt.hookEventName,
+              toolName: receipt.toolName,
+              policyId: evaluation.policyId,
+              policyName: evaluation.policyName,
+              ruleId: evaluation.ruleId,
+              matchedValue: evaluation.matchedValue,
+              reason,
+            },
+            'BLOCKED AI tool call by active privacy policy',
+          );
+
+          return reply.code(200).send({
+            ...receipt,
+            status: 'blocked',
+            decision: 'block',
+            policyId: evaluation.policyId,
+            policyName: evaluation.policyName,
+            ruleId: evaluation.ruleId,
+            reason,
+            hookSpecificOutput: {
+              hookEventName: 'PreToolUse',
+              permissionDecision: 'deny',
+              permissionDecisionReason: reason,
+            },
+          });
+        }
+
+        if (evaluation && evaluation.decision === 'WARN') {
+          request.log.warn(
+            {
+              receiptId: receipt.receiptId,
+              eventId: receipt.eventId,
+              connector: receipt.connector,
+              toolName: receipt.toolName,
+              policyName: evaluation.policyName,
+              reason: evaluation.reason,
+            },
+            'Policy warning triggered for AI tool call',
+          );
+        }
 
         request.log.info(
           {

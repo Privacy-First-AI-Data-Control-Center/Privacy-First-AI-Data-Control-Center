@@ -9,7 +9,7 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="${PROJECT_ROOT}/backend"
-AGENT_DIR="${PROJECT_ROOT}/local-agent-claude-hook"
+AGENT_DIR="${PROJECT_ROOT}/local-agent"
 HOOK_SETTINGS="${AGENT_DIR}/.claude/settings.json"
 
 USE_TABS=false
@@ -38,7 +38,7 @@ done
 
 # 1. Verify folders exist
 if [[ ! -d "${BACKEND_DIR}" || ! -d "${AGENT_DIR}" ]]; then
-  echo "[ERROR] Expected 'backend/' and 'local-agent-claude-hook/' inside ${PROJECT_ROOT}"
+  echo "[ERROR] Expected 'backend/' and 'local-agent/' inside ${PROJECT_ROOT}"
   exit 1
 fi
 
@@ -111,14 +111,14 @@ echo ''
 echo 'Useful commands in this terminal:'
 echo '  curl http://localhost:3000/api/v1/connectors'
 echo '  curl http://localhost:3000/api/v1/agent/connectors'
-echo '  (cd local-agent-claude-hook && npm run db:view)'"
+echo '  (cd local-agent && npm run db:view)'"
 
 echo "[LAUNCH] Opening Terminal 1: Backend API (NestJS)"
 open_terminal "1. Backend API (NestJS)" "${BACKEND_DIR}" "${BACKEND_CMD}"
 sleep 0.5
 
-echo "[LAUNCH] Opening Terminal 2: Local Agent (Claude Hook)"
-open_terminal "2. Local Agent (Claude Hook)" "${AGENT_DIR}" "${AGENT_CMD}"
+echo "[LAUNCH] Opening Terminal 2: Local Agent (All AI Tools)"
+open_terminal "2. Local Agent (All AI Tools)" "${AGENT_DIR}" "${AGENT_CMD}"
 sleep 0.5
 
 echo "[LAUNCH] Opening Terminal 3: Status & Console"

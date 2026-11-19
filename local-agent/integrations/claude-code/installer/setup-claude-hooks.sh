@@ -101,5 +101,38 @@ cat <<EOF > "${TARGET_Project_CLAUDE_DIR}/settings.json"
 }
 EOF
 
-echo "[2/3] Generated ${TARGET_Project_CLAUDE_DIR}/settings.json pointing to ${HOOK_URL}"
-echo "[3/3] Claude Code hooks are now active inside ${AGENT_ROOT}!"
+echo "[2/4] Generated ${TARGET_Project_CLAUDE_DIR}/settings.json pointing to ${HOOK_URL}"
+
+# Setup Cursor Hooks (~/.cursor/hooks.json) using the universal hook bridge
+BRIDGE_SCRIPT="${SCRIPT_DIR}/antigravity-hook-bridge.mjs"
+CURSOR_DIR="${HOME}/.cursor"
+mkdir -p "${CURSOR_DIR}"
+cat <<EOF > "${CURSOR_DIR}/hooks.json"
+{
+  "version": 1,
+  "hooks": {
+    "beforeReadFile": [
+      {
+        "command": "node '${BRIDGE_SCRIPT}' beforeReadFile cursor"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "node '${BRIDGE_SCRIPT}' beforeShellExecution cursor"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "node '${BRIDGE_SCRIPT}' afterFileEdit cursor"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node '${BRIDGE_SCRIPT}' stop cursor"
+      }
+    ]
+  }
+}
+EOF
+echo "[3/4] Generated ${CURSOR_DIR}/hooks.json pointing to http://127.0.0.1:${PORT}/hooks/cursor"
+echo "[4/4] Claude Code, Antigravity, Gemini CLI & Cursor hooks are ready for ${AGENT_ROOT}!"

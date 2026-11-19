@@ -5,13 +5,14 @@ import type { ClaudeCodeHookEventName, ClaudeCodeHookPayload } from './hook-hand
  * AI tools whose hook payloads share the Claude Code hook shape
  * (Antigravity and Gemini CLI are translated into it by the hook bridge script).
  */
-export const CONNECTOR_SLUGS = ['claude-code', 'antigravity', 'gemini-cli'] as const;
+export const CONNECTOR_SLUGS = ['claude-code', 'antigravity', 'gemini-cli', 'cursor'] as const;
 export type ConnectorSlug = (typeof CONNECTOR_SLUGS)[number];
 
 export const CONNECTOR_DISPLAY_NAMES: Record<ConnectorSlug, string> = {
   'claude-code': 'Claude Code',
   antigravity: 'Antigravity',
   'gemini-cli': 'Gemini CLI',
+  cursor: 'Cursor',
 };
 
 export type ConfidenceLevel = 'observed' | 'inferred' | 'unavailable';

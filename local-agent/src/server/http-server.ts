@@ -11,6 +11,7 @@ import { ClaudeCodeHookHandler } from '../connectors/claude-code/hook-handler.js
 import { EventNormalizer } from '../events/event-normalizer.js';
 import { EventProcessor } from '../events/event-processor.js';
 import { HealthService } from '../health/health.service.js';
+import { PolicyEngineService } from '../policy/policy-engine.service.js';
 import { QueueService } from '../queue/queue.service.js';
 import { RedactionService } from '../security/redaction.service.js';
 import { registerClaudeCodeRoute } from './routes/claude-code.route.js';
@@ -22,6 +23,7 @@ export interface BuildServerOptions {
   queueService?: QueueService;
   eventProcessor?: EventProcessor;
   hookHandler?: ClaudeCodeHookHandler;
+  policyEngine?: PolicyEngineService;
 }
 
 export async function buildServer(
@@ -96,8 +98,34 @@ export async function buildServer(
     timeoutMs: config.backendTimeoutMs,
   });
 
+  const policyEngine =
+    options.policyEngine ??
+    new PolicyEngineService({
+      backendClient,
+    });
+
   let isFlushing = false;
   let flushTimer: NodeJS.Timeout | null = null;
+  let policySyncTimer: NodeJS.Timeout | null = null;
+
+  const triggerPolicySync = async (): Promise<void> => {
+    try {
+      const outcome = await policyEngine.syncFromBackend();
+      if (outcome.ok) {
+        server.log.info(
+          { activePolicies: outcome.total },
+          'Synced active privacy policies from NestJS backend',
+        );
+      } else {
+        server.log.warn(
+          { error: outcome.errorMessage },
+          'Could not sync active policies from NestJS backend (using cached policies)',
+        );
+      }
+    } catch (err) {
+      server.log.warn({ err }, 'Policy sync failed');
+    }
+  };
 
   const triggerBackgroundFlush = async (): Promise<void> => {
     if (isFlushing) return;
@@ -121,6 +149,12 @@ export async function buildServer(
   };
 
   if (!config.isTest) {
+    void triggerPolicySync();
+    policySyncTimer = setInterval(() => {
+      void triggerPolicySync();
+    }, 15000);
+    policySyncTimer.unref();
+
     flushTimer = setInterval(() => {
       void triggerBackgroundFlush();
     }, 5000);
@@ -128,6 +162,9 @@ export async function buildServer(
   }
 
   server.addHook('onClose', async () => {
+    if (policySyncTimer) {
+      clearInterval(policySyncTimer);
+    }
     if (flushTimer) {
       clearInterval(flushTimer);
     }
@@ -171,6 +208,16 @@ export async function buildServer(
   await registerClaudeCodeRoute(server, {
     configService: config,
     hookHandler,
+    policyEngine,
+  });
+
+  server.get('/policies', async () => policyEngine.getCachedPolicies());
+  server.post('/policies/sync', async () => {
+    const result = await policyEngine.syncFromBackend();
+    return {
+      ...result,
+      ...policyEngine.getCachedPolicies(),
+    };
   });
 
   return server;

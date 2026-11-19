@@ -19,8 +19,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const hookEventArg = process.argv[2] || 'PostToolUse';
-// Which AI tool is calling this bridge: 'antigravity' (default) or 'gemini-cli'.
-const SUPPORTED_SOURCES = new Set(['antigravity', 'gemini-cli']);
+// Which AI tool is calling this bridge: 'antigravity' (default), 'gemini-cli', or 'cursor'.
+const SUPPORTED_SOURCES = new Set(['antigravity', 'gemini-cli', 'cursor']);
 const sourceArg = SUPPORTED_SOURCES.has(process.argv[3]) ? process.argv[3] : 'antigravity';
 
 function loadEnvConfig() {
@@ -160,22 +160,49 @@ async function main() {
     'SessionEnd',
   ]);
 
-  let hookEventName = validEvents.has(hookEventArg) ? hookEventArg : 'PostToolUse';
+  // Normalize Cursor hook names into standard Claude Code hook_event_name
+  const cursorEventMap = {
+    beforeShellExecution: 'PreToolUse',
+    beforeReadFile: 'PreToolUse',
+    beforeMCPExecution: 'PreToolUse',
+    afterFileEdit: 'PostToolUse',
+    stop: 'Stop',
+  };
+  const normalizedHookArg = cursorEventMap[hookEventArg] || hookEventArg;
+
+  let hookEventName = validEvents.has(normalizedHookArg) ? normalizedHookArg : 'PostToolUse';
   if (hookEventName === 'PostToolUse' && input.error) {
     hookEventName = 'PostToolUseFailure';
   }
 
   const sessionId =
-    input.conversationId || input.session_id || input.sessionId || 'antigravity-session';
+    input.conversation_id ||
+    input.conversationId ||
+    input.session_id ||
+    input.sessionId ||
+    `${sourceArg}-session`;
   const cwd =
-    Array.isArray(input.workspacePaths) && input.workspacePaths.length > 0
-      ? input.workspacePaths[0]
-      : input.cwd || process.cwd();
+    Array.isArray(input.workspace_roots) && input.workspace_roots.length > 0
+      ? input.workspace_roots[0]
+      : Array.isArray(input.workspacePaths) && input.workspacePaths.length > 0
+        ? input.workspacePaths[0]
+        : input.cwd || process.cwd();
 
-  const rawToolName =
-    input.toolCall?.name || input.tool_name || input.toolName || 'antigravity_tool';
-  const rawToolArgs =
+  let rawToolName =
+    input.toolCall?.name || input.tool_name || input.toolName || `${sourceArg}_tool`;
+  let rawToolArgs =
     input.toolCall?.args || input.tool_input || input.toolInput || {};
+
+  // Cursor-specific payload translation (beforeShellExecution / beforeReadFile / afterFileEdit)
+  if (sourceArg === 'cursor') {
+    if (hookEventArg === 'beforeShellExecution' || typeof input.command === 'string') {
+      rawToolName = 'Bash';
+      rawToolArgs = { command: input.command || '' };
+    } else if (hookEventArg === 'beforeReadFile' || typeof input.file_path === 'string') {
+      rawToolName = hookEventArg === 'afterFileEdit' ? 'Edit' : 'Read';
+      rawToolArgs = { file_path: input.file_path || '' };
+    }
+  }
 
   const mappedTool = mapToolNameAndInput(rawToolName, rawToolArgs);
 
@@ -200,10 +227,12 @@ async function main() {
 
   const { url, token } = loadEnvConfig();
 
+  let blockReason = null;
+
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 2000);
-    await fetch(url, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -213,13 +242,49 @@ async function main() {
       signal: controller.signal,
     });
     clearTimeout(timer);
+
+    if (hookEventName === 'PreToolUse' && res.ok) {
+      try {
+        const data = await res.json();
+        if (
+          data?.decision === 'block' ||
+          data?.status === 'blocked' ||
+          data?.hookSpecificOutput?.permissionDecision === 'deny'
+        ) {
+          blockReason =
+            data?.reason ||
+            data?.hookSpecificOutput?.permissionDecisionReason ||
+            'Blocked by active workspace privacy policy.';
+        }
+      } catch {
+        // Non-JSON response -> default allow
+      }
+    }
   } catch {
-    // Never block Antigravity / Gemini CLI if the local agent server is stopped
+    // Never block Antigravity / Gemini CLI / Cursor if the local agent server is stopped
   }
 
-  // Output the exact JSON contract expected by Antigravity / Gemini CLI
-  if (hookEventArg === 'PreToolUse') {
-    process.stdout.write(JSON.stringify({ decision: 'allow' }) + '\n');
+  // Output the exact JSON contract expected by Cursor / Antigravity / Gemini CLI
+  if (hookEventName === 'PreToolUse') {
+    if (sourceArg === 'cursor') {
+      if (blockReason) {
+        process.stdout.write(
+          JSON.stringify({
+            permission: 'deny',
+            user_message: blockReason,
+            agent_message: blockReason,
+          }) + '\n',
+        );
+      } else {
+        process.stdout.write(JSON.stringify({ permission: 'allow' }) + '\n');
+      }
+    } else if (blockReason) {
+      process.stdout.write(
+        JSON.stringify({ decision: 'deny', reason: blockReason }) + '\n',
+      );
+    } else {
+      process.stdout.write(JSON.stringify({ decision: 'allow' }) + '\n');
+    }
   } else {
     process.stdout.write('{}\n');
   }

@@ -37,7 +37,7 @@ describe('Stage 1: Local Agent Foundation & Health Endpoint', () => {
     const body = response.json();
     expect(body).toEqual({
       status: 'ok',
-      service: 'local-agent-claude-hook',
+      service: 'local-agent',
       version: '1.0.0',
       uptimeSeconds: expect.any(Number),
       timestamp: expect.any(String),

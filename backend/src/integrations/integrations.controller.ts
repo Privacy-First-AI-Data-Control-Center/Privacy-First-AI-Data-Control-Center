@@ -20,7 +20,7 @@ import {
     import { QueryIntegrationDto } from './dto/query-integration.dto.js';                                                                                                                  
 import { JwtGuard } from '../auth/jwtGuard.guard.js';
                                                                                                                                                                                            
-    @ApiTags('Integrations (Shohag)')                                                                                                                                                      
+    @ApiTags('Integrations')                                                                                                                                                      
     @Controller('workspaces/:workspaceId/integrations')   
     @UseGuards(JwtGuard)                                                                                                                                 
     export class IntegrationsController {                                                                                                                                                  

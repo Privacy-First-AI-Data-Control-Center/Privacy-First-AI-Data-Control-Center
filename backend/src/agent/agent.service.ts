@@ -125,6 +125,7 @@ export class AgentService {
               description: policy.description,                                                                                                                                             
               priority: policy.priority,                                                                                                                                                   
               status: policy.status,                                                                                                                                                       
+              policyVersionId: latestVersion?.id ?? null,
               versionNumber: latestVersion?.versionNumber ?? null,                                                                                                                         
               definitionSnapshot: latestVersion?.definitionSnapshot ?? null,                                                                                                               
               rules: (latestVersion?.policy_rules ?? []).filter((rule) => rule.enabled),                                                                                                   

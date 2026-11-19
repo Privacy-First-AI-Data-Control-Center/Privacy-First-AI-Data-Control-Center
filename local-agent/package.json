@@ -1,7 +1,7 @@
 {
-  "name": "local-agent-claude-hook",
+  "name": "local-agent",
   "version": "1.0.0",
-  "description": "Privacy-First AI Data Control Center - Local Monitoring Agent & Claude Code Hook Receiver",
+  "description": "Privacy-First AI Data Control Center - Local Monitoring & Policy Enforcement Agent (Antigravity, Claude Code, Cursor, Gemini CLI)",
   "type": "module",
   "main": "dist/main.js",
   "scripts": {
@@ -17,7 +17,10 @@
   "keywords": [
     "privacy",
     "ai-agent",
+    "antigravity",
     "claude-code",
+    "cursor",
+    "gemini-cli",
     "fastify"
   ],
   "author": "",

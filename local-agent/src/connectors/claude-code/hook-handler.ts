@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { EventProcessor } from '../../events/event-processor.js';
+import type { PolicyEvaluationResult } from '../../policy/policy-engine.service.js';
 import { ClaudeCodeConnectorService } from './connector.service.js';
 import type {
   ConfidenceLevel,
@@ -98,10 +99,28 @@ export class ClaudeCodeHookHandler {
   public async handleHookPayload(
     payload: ClaudeCodeHookPayload,
     connectorSlug: ConnectorSlug = 'claude-code',
+    policyEvaluation?: PolicyEvaluationResult,
   ): Promise<HookReceiptResult> {
     const receiptId = randomUUID();
     const receivedAt = new Date().toISOString();
     const mappedEvent = this.connectorService.normalizeHookPayload(payload, connectorSlug);
+
+    if (policyEvaluation && (policyEvaluation.decision === 'BLOCK' || policyEvaluation.decision === 'WARN')) {
+      mappedEvent.metadata = {
+        ...mappedEvent.metadata,
+        policyDecision: policyEvaluation.decision,
+        policyId: policyEvaluation.policyId,
+        policyVersionId: policyEvaluation.policyVersionId,
+        policyName: policyEvaluation.policyName,
+        ruleId: policyEvaluation.ruleId,
+        policyReason: policyEvaluation.reason,
+        matchedValue: policyEvaluation.matchedValue,
+      };
+      if (policyEvaluation.decision === 'BLOCK') {
+        mappedEvent.severity = 'high';
+      }
+    }
+
     const { normalizedEvent, queueResult } =
       this.eventProcessor.processMappedEvent(mappedEvent);
 
