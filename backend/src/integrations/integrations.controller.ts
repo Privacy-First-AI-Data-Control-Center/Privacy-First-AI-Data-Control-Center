@@ -9,16 +9,20 @@ import {
       ParseIntPipe,                                                                                                                                                                        
       Patch,                                                                                                                                                                               
       Post,                                                                                                                                                                                
-      Query,                                                                                                                                                                               
+      Query,
+      Req,
+      UseGuards,                                                                                                                                                                               
     } from '@nestjs/common';                                                                                                                                                               
     import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';                                                                                                                  
     import { IntegrationsService } from './integrations.service.js';                                                                                                                       
     import { CreateIntegrationDto } from './dto/create-integration.dto.js';                                                                                                                
     import { UpdateIntegrationDto } from './dto/update-integration.dto.js';                                                                                                                
     import { QueryIntegrationDto } from './dto/query-integration.dto.js';                                                                                                                  
+import { JwtGuard } from '../auth/jwtGuard.guard.js';
                                                                                                                                                                                            
     @ApiTags('Integrations (Shohag)')                                                                                                                                                      
-    @Controller('workspaces/:workspaceId/integrations')                                                                                                                                    
+    @Controller('workspaces/:workspaceId/integrations')   
+    @UseGuards(JwtGuard)                                                                                                                                 
     export class IntegrationsController {                                                                                                                                                  
       constructor(private readonly integrationsService: IntegrationsService) {}                                                                                                            
                                                                                                                                                                                            
@@ -27,9 +31,10 @@ import {
       @Post()                                                                                                                                                                              
       async create(                                                                                                                                                                        
         @Param('workspaceId', ParseIntPipe) workspaceId: number,                                                                                                                           
-        @Body() dto: CreateIntegrationDto,                                                                                                                                                 
+        @Body() dto: CreateIntegrationDto,  
+        @Req() req: any  ,                                                                                                                                             
       ) {                                                                                                                                                                                  
-        return this.integrationsService.create(workspaceId, dto);                                                                                                                          
+        return this.integrationsService.create(workspaceId, dto,req.user.id);                                                                                                                          
       }                                                                                                                                                                                    
                                                                                                                                                                                            
       @ApiOperation({ summary: 'List connected workspace integrations' })                                                                                                                  
@@ -55,9 +60,10 @@ import {
       async update(                                                                                                                                                                        
         @Param('workspaceId', ParseIntPipe) workspaceId: number,                                                                                                                           
         @Param('integrationId', ParseIntPipe) integrationId: number,                                                                                                                       
-        @Body() dto: UpdateIntegrationDto,                                                                                                                                                 
+        @Body() dto: UpdateIntegrationDto, 
+        @Req() req: any                                                                                                                                                 
       ) {                                                                                                                                                                                  
-        return this.integrationsService.update(workspaceId, integrationId, dto);                                                                                                           
+        return this.integrationsService.update(workspaceId, integrationId, dto ,req.user.id);                                                                                                           
       }                                                                                                                                                                                    
                                                                                                                                                                                            
       @ApiOperation({ summary: 'Test an integration connection and permissions' })                                                                                                         
@@ -75,9 +81,10 @@ import {
       @HttpCode(HttpStatus.OK)                                                                                                                                                             
       async disconnect(                                                                                                                                                                    
         @Param('workspaceId', ParseIntPipe) workspaceId: number,                                                                                                                           
-        @Param('integrationId', ParseIntPipe) integrationId: number,                                                                                                                       
+        @Param('integrationId', ParseIntPipe) integrationId: number,
+         @Req() req: any                                                                                                                        
       ) {                                                                                                                                                                                  
-        return this.integrationsService.disconnect(workspaceId, integrationId);                                                                                                            
+        return this.integrationsService.disconnect(workspaceId, integrationId,req.user.id);                                                                                                            
       }                                                                                                                                                                                    
                                                                                                                                                                                            
       @ApiOperation({ summary: 'Remove an integration record (soft delete)' })
@@ -85,8 +92,9 @@ import {
       async remove(
         @Param('workspaceId', ParseIntPipe) workspaceId: number,
         @Param('integrationId', ParseIntPipe) integrationId: number,
+         @Req() req: any 
       ) {
-        return this.integrationsService.remove(workspaceId, integrationId);
+        return this.integrationsService.remove(workspaceId, integrationId,req.user.id);
       }
   
       @ApiOperation({ summary: 'View capabilities available for an integration' })
@@ -104,7 +112,8 @@ import {
       async refreshCapabilities(
         @Param('workspaceId', ParseIntPipe) workspaceId: number,
         @Param('integrationId', ParseIntPipe) integrationId: number,
+         @Req() req: any 
       ) {
-        return this.integrationsService.refreshCapabilities(workspaceId, integrationId);
+        return this.integrationsService.refreshCapabilities(workspaceId, integrationId ,req.user.id);
       }
     }

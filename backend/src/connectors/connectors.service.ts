@@ -1,10 +1,9 @@
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { CreateConnectorDto } from './dto/create-connector-type.dto.js';
-import { UpdateConnectorDto } from './dto/update-connector-type.dto.js';
+
 import { ConnectorTypes } from './entities/connector.entity.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { promises } from 'dns';
+
 export interface ConnectorCapabilityDefinition{
   code : string
 
@@ -115,9 +114,7 @@ export class ConnectorsService implements OnModuleInit {
       order : {id:'ASC'}
     })
   }
-  create(createConnectorDto: CreateConnectorDto) {
-    return 'This action adds a new connector';
-  }
+
 
   async findOne(connectorId: number): Promise<ConnectorTypes> {                                                                                                                        
         const connector = await this.connectorRepo.findOne({                                                                                                                               
