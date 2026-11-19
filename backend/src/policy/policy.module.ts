@@ -5,9 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Policies } from './entities/policy.entity.js';
 import { PolicyVersions } from './entities/policy-version.entity.js';
 import { PolicyRules } from './entities/policy-rule.entity.js';
+import { EmailModule } from '../email/email.module.js';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Policies,PolicyVersions,PolicyRules])],
+  imports:[TypeOrmModule.forFeature([Policies,PolicyVersions,PolicyRules]),EmailModule],
   controllers: [PolicyController],
   providers: [PolicyService],
 })

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Policies } from './entities/policy.entity.js';
 import { privateDecrypt } from 'crypto';
 import { Repository } from 'typeorm';
@@ -14,6 +14,7 @@ import { TestPolicyDto } from './dto/test-policy.dto.js';
 import { RuleEffect, RuleType } from './enums/policy-rule.enum.js';
 import { workspaceevents } from 'googleapis/build/src/apis/workspaceevents/index.js';
 import { partialUpdatePolicyDto } from './dto/partial-update-policy.dto.js';
+import { EmailService } from '../email/email.service.js';
 
 const CONDITION_KEY = {
   [RuleType.SENSITIVE_DATA]: 'sensitiveTypes',
@@ -23,10 +24,12 @@ const CONDITION_KEY = {
 
 @Injectable()
 export class PolicyService {
+    private readonly logger = new Logger(PolicyService.name);   
     constructor(
         @InjectRepository(Policies) private policyRepo:Repository<Policies>,
         @InjectRepository(PolicyVersions) private versionRepo:Repository<PolicyVersions>,
-        @InjectRepository(PolicyRules) private ruleRepo:Repository<PolicyRules>, 
+        @InjectRepository(PolicyRules) private ruleRepo:Repository<PolicyRules>,
+        private readonly emailService:EmailService,
     ){}
     async create(worksapceId:number,dto:CreatePolicyDto,userId:number):Promise<Policies & {currentVersion:PolicyVersions}>{
         const policy = await this.policyRepo.save({
@@ -124,8 +127,28 @@ export class PolicyService {
         const version = await this.findOneVersion(workspaceId,policyId,versionId);
         const latest = policy.currentVersion;
         if(latest.id == version.id) return latest;
-        //not finished
-        return this.createVersion(policyId,latest.versionNumber+1,this.copyRules(version.policy_rules),userId);
+        const newVersion =  await this.createVersion(policyId,latest.versionNumber+1,this.copyRules(version.policy_rules),userId);
+        try{
+            const pwo = await this.policyRepo.findOne({
+                where:{id:policyId},
+                relations:{workspace:{ownerUser:true}},
+            });
+            const owner = pwo?.workspace?.ownerUser;
+            if(owner && owner.id !== userId){
+                await this.emailService.sendMail(
+                    owner.email,
+                    `Policy version changed: ${policy.name}`,
+                    `Hi ${owner.displayName},<br><br>
+                    Policy <b>${policy.name}</b> was restored to version ${version.versionNumber}.
+                    It is now version ${newVersion.versionNumber}.`,
+                );
+            }
+        }
+        catch{
+            this.logger.error(`Email failed for policy ${policyId}`);
+
+        }
+        return newVersion;
     }
     async test(worksapceId:number,policyId:number,dto:TestPolicyDto):Promise<{versionId:number,decision:RuleEffect,reason:string,matchedRuleIds?:number[],}>{
         const policy = await this.findOne(worksapceId,policyId);
