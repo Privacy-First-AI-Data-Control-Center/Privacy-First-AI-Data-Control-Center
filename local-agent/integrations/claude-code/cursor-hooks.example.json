@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeReadFile": [
+      {
+        "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent/integrations/claude-code/installer/antigravity-hook-bridge.mjs' beforeReadFile cursor"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent/integrations/claude-code/installer/antigravity-hook-bridge.mjs' beforeShellExecution cursor"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent/integrations/claude-code/installer/antigravity-hook-bridge.mjs' afterFileEdit cursor"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node '/run/media/shohag-rana/New Volume/STUDY/10th semester Fall 2026-2027/Advance web technologies/Project/Privacy-First-AI-Data-Control-Center/local-agent/integrations/claude-code/installer/antigravity-hook-bridge.mjs' stop cursor"
+      }
+    ]
+  }
+}

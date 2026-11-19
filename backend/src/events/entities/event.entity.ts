@@ -22,7 +22,7 @@ import { RiskFinding } from "../../risk-finding/entities/risk-finding.entity.js"
         @PrimaryGeneratedColumn()                                                                                                                                                          
         id: number;                                                                                                                                                                        
                                                                                                                                                                                            
-        // UUID sent by local-agent-claude-hook                                                                                                                                            
+        // UUID sent by local-agent                                                                                                                                            
         @Column({                                                                                                                                                                          
             type: "uuid",                                                                                                                                                                  
             unique: true,                                                                                                                                                                  

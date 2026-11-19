@@ -10,7 +10,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
     import { UpdateIntegrationDto } from './dto/update-integration.dto.js';                                                                                                                
     import { QueryIntegrationDto } from './dto/query-integration.dto.js';                                                                                                                  
     import { IntegrationStatus } from './enum/integration-status.js';                                                                                                                      
-                                                                                                                                                                                           
+    import { AuditLogsService } from '../audit-logs/audit-logs.service.js';                                                                                                                                                                                    
     @Injectable()                                                                                                                                                                          
     export class IntegrationsService {                                                                                                                                                     
       constructor(                                                                                                                                                                         
@@ -22,10 +22,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
         private readonly workspaceRepo: Repository<Workspaces>,                                                                                                                            
         @InjectRepository(ConnectorTypes)                                                                                                                                                  
         private readonly connectorTypeRepo: Repository<ConnectorTypes>,                                                                                                                    
-        private readonly connectorsService: ConnectorsService,                                                                                                                             
+        private readonly connectorsService: ConnectorsService,   
+        private readonly auditLogsService :AuditLogsService ,                                                                                                                          
       ) {}                                                                                                                                                                                 
                                                                                                                                                                                            
-      async create(workspaceId: number, dto: CreateIntegrationDto): Promise<Integrations> {                                                                                                
+      async create(workspaceId: number, dto: CreateIntegrationDto ,userId?: number): Promise<Integrations> {                                                                                                
         const workspace = await this.workspaceRepo.findOne({ where: { id: workspaceId } });                                                                                                
         if (!workspace) {                                                                                                                                                                  
           throw new NotFoundException(`Workspace #${workspaceId} not found`);                                                                                                              
@@ -50,8 +51,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
           connectedAt: status === IntegrationStatus.ACTIVE ? new Date() : undefined,                                                                                                       
         });                                                                                                                                                                                
                                                                                                                                                                                            
-        const saved = await this.integrationRepo.save(integration);                                                                                                                        
-        await this.refreshCapabilities(workspaceId, saved.id);                                                                                                                             
+        const saved = await this.integrationRepo.save(integration);  
+        await this.auditLogsService.log({
+          workspaceId,
+          actorUserId: userId,
+          action: 'INTEGRATION_CONNECTED',
+          targetType: 'INTEGRATION',
+          targetId: saved.id,
+          metadata: { displayName: saved.displayName, connectorSlug: connectorType.slug },
+        });
+        await this.refreshCapabilities(workspaceId, saved.id, userId);                                                                                                                      
+                                                                                                                                    
         return this.findOne(workspaceId, saved.id);                                                                                                                                        
       }                                                                                                                                                                                    
                                                                                                                                                                                            
@@ -102,7 +112,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
       async update(                                                                                                                                                                        
         workspaceId: number,                                                                                                                                                               
         integrationId: number,                                                                                                                                                             
-        dto: UpdateIntegrationDto,                                                                                                                                                         
+        dto: UpdateIntegrationDto,   
+        userId?:number ,                                                                                                                                                      
       ): Promise<Integrations> {                                                                                                                                                           
         const integration = await this.findOne(workspaceId, integrationId);                                                                                                                
                                                                                                                                                                                            
@@ -131,7 +142,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
           }                                                                                                                                                                                
         }                                                                                                                                                                                  
                                                                                                                                                                                            
-        await this.integrationRepo.save(integration);                                                                                                                                      
+        await this.integrationRepo.save(integration);  
+         await this.auditLogsService.log({
+          workspaceId,
+          actorUserId: userId,
+          action: 'INTEGRATION_UPDATED',
+          targetType: 'INTEGRATION',
+          targetId: integrationId,
+          metadata: { updatedFields: Object.keys(dto) },
+        });                                                                                                                                    
         return this.findOne(workspaceId, integrationId);                                                                                                                                   
       }                                                                                                                                                                                    
                                                                                                                                                                                            
@@ -149,17 +168,32 @@ import { Injectable, NotFoundException } from '@nestjs/common';
         };                                                                                                                                                                                 
       }                                                                                                                                                                                    
                                                                                                                                                                                            
-      async disconnect(workspaceId: number, integrationId: number): Promise<Integrations> {                                                                                                
+      async disconnect(workspaceId: number, integrationId: number ,userId?:number): Promise<Integrations> {                                                                                                
         const integration = await this.findOne(workspaceId, integrationId);                                                                                                                
         integration.status = IntegrationStatus.DISCONNECTED;                                                                                                                               
         integration.disconnectedAt = new Date();                                                                                                                                           
-        await this.integrationRepo.save(integration);                                                                                                                                      
-        return this.findOne(workspaceId, integrationId);                                                                                                                                   
+        await this.integrationRepo.save(integration);
+        await this.auditLogsService.log({
+          workspaceId, 
+          actorUserId: userId,
+          action: 'INTEGRATION_DISCONNECTED',
+          targetType: 'INTEGRATION', 
+          targetId: integrationId,
+        });                                                                                                                                      
+        return this.findOne(workspaceId, integrationId);  
+
       }                                                                                                                                                                                    
                                                                                                                                                                                            
-      async remove(workspaceId: number, integrationId: number) {                                                                                                                           
+      async remove(workspaceId: number, integrationId: number,userId?:number) {                                                                                                                           
         const integration = await this.findOne(workspaceId, integrationId);                                                                                                                
-        await this.integrationRepo.softDelete(integration.id);                                                                                                                             
+        await this.integrationRepo.softDelete(integration.id); 
+         await this.auditLogsService.log({ 
+          workspaceId,
+          actorUserId: userId, 
+          action: 'INTEGRATION_DELETED',
+          targetType: 'INTEGRATION', 
+          targetId: integration.id,
+        });                                                                                                                             
         return { deleted: true, integrationId: integration.id };                                                                                                                           
       }                                                                                                                                                                                    
                                                                                                                                                                                            
@@ -176,7 +210,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
                                                                                                                                                                                            
       async refreshCapabilities(                                                                                                                                                           
         workspaceId: number,                                                                                                                                                               
-        integrationId: number,                                                                                                                                                             
+        integrationId: number, 
+        userId?: number,                                                                                                                                                            
       ): Promise<IntegrationCapabilities[]> {                                                                                                                                              
         const integration = await this.findOne(workspaceId, integrationId);                                                                                                                
         const catalog = await this.connectorsService.getCapabilities(integration.connectorType.id);                                                                                        
@@ -212,7 +247,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
               }),                                                                                                                                                                          
             );                                                                                                                                                                             
           }                                                                                                                                                                                
-        }                                                                                                                                                                                  
+        }     
+         await this.auditLogsService.log({                                                                                                                                                  
+          workspaceId,                                                                                                                                                                     
+          actorUserId: userId,                                                                                                                                                             
+          action: 'INTEGRATION_CAPABILITIES_REFRESHED',                                                                                                                                    
+          targetType: 'INTEGRATION',                                                                                                                                                       
+          targetId: integration.id,                                                                                                                                                        
+          metadata: { capabilitiesCount: catalog.capabilities.length },                                                                                                                    
+        });                                                                                                                                                                              
                                                                                                                                                                                            
         return this.getCapabilities(workspaceId, integrationId);                                                                                                                           
       }                                                                                                                                                                                    
