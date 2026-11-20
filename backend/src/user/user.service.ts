@@ -7,11 +7,14 @@ import { UpdateUserDto } from './dto/update-user.dto.js';
 import { EmailService } from '../email/email.service.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import * as bcrypt from 'bcrypt'
-import { escape } from 'querystring';
+import { Workspaces } from '../workspace/entity/workspaces.js';
+import { WorkspaceService } from '../workspace/workspace.service.js';
 
 @Injectable()
 export class UserService {
-    constructor(@InjectRepository(Users) private userRepo: Repository<Users>, private emailService: EmailService){}
+    constructor(@InjectRepository(Users) private userRepo: Repository<Users>, 
+                private emailService: EmailService,
+                private workspaceService: WorkspaceService){}
 
     async getProfile(id: string): Promise<Users | null>{
         return await this.userRepo.findOne({
@@ -86,5 +89,9 @@ export class UserService {
         else{
             return `User not found`;
         }
+    }
+
+    async getMyWorkpaces(userId: string): Promise<Workspaces[]>{
+        return await this.workspaceService.getMyWorkpaces(userId);
     }
 }

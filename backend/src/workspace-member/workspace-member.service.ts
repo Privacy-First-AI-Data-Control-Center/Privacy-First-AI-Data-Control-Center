@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WorkspaceMembers } from './entity/workspace-members.js';
 import { Repository } from 'typeorm';
 import { CreateWorkspaceMemberDto } from './dto/create-workspace-member.dto.js';
 import { EmailService } from '../email/email.service.js';
 import { UserService } from '../user/user.service.js';
+import { UpdateWorkspaceMemberDto } from './dto/update-workpsace-member.dto.js';
 
 @Injectable()
 export class WorkspaceMemberService {
@@ -71,21 +72,31 @@ export class WorkspaceMemberService {
         }
     }
 
-    // async updateMemberRole(workspaceId: string, memberId: string, updateDeviceDto: UpdateDeviceDto){
-    //     const device = await this.getDeviceDetails(workspaceId, deviceId);
-    //     if(device != null){
-    //         const res = (await this.deviceRepo.update({ id: Number(deviceId) }, updateDeviceDto)).affected;
-    //         if(res != null && res > 0){
-    //             return 'updated successfully';
-    //         }
-    //         else{
-    //             return 'Failed to update';
-    //         }
-    //     }
-    //     else{
-    //         throw new NotFoundException(`Device with id ${id} not found`)
-    //     }    
-    // }
+    async updateMemberRole(workspaceId: string, memberId: string, updateWorkspaceMemberDto: UpdateWorkspaceMemberDto): Promise<string>{
+        const member = await this.workspaceMembersRepo.findOne({
+            where:{
+             user:{
+                id: parseInt(memberId)
+             },
+             workspace:{
+                id: parseInt(workspaceId)
+             }   
+            }
+        })
+        console.log(member);
+        if(member != null){
+            const res = (await this.workspaceMembersRepo.update({ id: member.id }, updateWorkspaceMemberDto)).affected;
+            if(res != null && res > 0){
+                return 'updated successfully';
+            }
+            else{
+                return 'Failed to update';
+            }
+        }
+        else{
+            throw new NotFoundException(`Member with id ${memberId} not found`)
+        }    
+    }
 
     async sendInvitaionMail(id: number){
         const data = await this.workspaceMembersRepo

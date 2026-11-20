@@ -65,4 +65,16 @@ export class WorkspaceService {
             throw new NotFoundException(`Workspace with id ${id} not found`);
         }
     }
+
+    async getMyWorkpaces(userId: string): Promise<Workspaces[]>{
+        return await this.workspaceRepo
+        .createQueryBuilder('workspace')
+        .innerJoin(
+            'workspace_members',
+            'member',
+            'member."workspaceId" = workspace.id'
+        )
+        .where(`member."userId" = ${userId}`)
+        .getMany();
+    }
 }
