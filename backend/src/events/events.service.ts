@@ -29,6 +29,8 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
     import { Severity } from '../sensitive-data-type/enum/Severity.js';
     import { Findings } from '../finding/entities/finding.entity.js';
     import { FindingStatus } from '../finding/enum/finding-status.enum.js';
+    import { AgentInstallations } from '../agent/entity/agent-installations.js';
+    import { AgentStatus } from '../agent/enum/agent-status.js';
     import { AgentEventBatchDto } from './dto/agent-event-batch.dto.js';
     import { QueryEventsDto } from './dto/query-event.dto.js';
   
@@ -69,6 +71,8 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
         private readonly sensitiveDataTypeRepo: Repository<SensitiveDataType>,
         @InjectRepository(Findings)
         private readonly findingRepo: Repository<Findings>,
+        @InjectRepository(AgentInstallations)
+        private readonly agentInstallationRepo: Repository<AgentInstallations>,
       ) {}
   
      
@@ -122,6 +126,26 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
           }
           device.lastSeenAt = new Date();
           await this.deviceRepo.save(device);
+        }
+
+        const installationId = `agent-${deviceId}`;
+        let agentInstall = await this.agentInstallationRepo.findOne({
+          where: { installationId },
+        });
+        if (!agentInstall) {
+          agentInstall = this.agentInstallationRepo.create({
+            device,
+            installationId,
+            agentVersion: '1.0.0',
+            agentStatus: AgentStatus.ACTIVE,
+            lastHeartbeatAt: new Date(),
+          });
+          await this.agentInstallationRepo.save(agentInstall);
+        } else {
+          agentInstall.device = device;
+          agentInstall.agentStatus = AgentStatus.ACTIVE;
+          agentInstall.lastHeartbeatAt = new Date();
+          await this.agentInstallationRepo.save(agentInstall);
         }
   
         for (const item of events) { 

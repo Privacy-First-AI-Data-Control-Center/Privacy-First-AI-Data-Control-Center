@@ -18,9 +18,10 @@ import { RiskRule } from '../risk-rule/entities/risk-rule.entity.js';
 import { RiskFinding } from '../risk-finding/entities/risk-finding.entity.js';
 import { SensitiveDataType } from '../sensitive-data-type/entity/SensitiveDataType.js';
 import { Findings } from '../finding/entities/finding.entity.js';
+import { AgentInstallations } from '../agent/entity/agent-installations.js';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Events ,EventTypes,EventSources,EventAttributes ,Workspaces ,Integrations, Devices, ConnectorTypes, PolicyDecision, EnforcementAction, PolicyVersions, Alerts, RiskRule, RiskFinding, SensitiveDataType, Findings])],
+  imports:[TypeOrmModule.forFeature([Events ,EventTypes,EventSources,EventAttributes ,Workspaces ,Integrations, Devices, ConnectorTypes, PolicyDecision, EnforcementAction, PolicyVersions, Alerts, RiskRule, RiskFinding, SensitiveDataType, Findings, AgentInstallations])],
   controllers: [EventsController],
   providers: [EventsService],
   exports:[TypeOrmModule ,EventsService],
