@@ -4,6 +4,7 @@ import { EnforcementAction } from './entities/enforcement-action.entity.js';
 import { Repository } from 'typeorm';
 import { PolicyDecision } from '../policy-decision/entities/policy-decision.entity.js';
 import { QueryEnforcementActionDto } from './dto/query-enforcement-action.dto.js';
+import { ReportEnforcementResultDto } from './dto/report-enforcement-result.dto.js';
 
 @Injectable()
 export class EnforcementActionService {
@@ -61,4 +62,20 @@ export class EnforcementActionService {
             throw new BadRequestException();
         }
     }
+    async reportResult(dto: ReportEnforcementResultDto):Promise<EnforcementAction>{
+        const decision = await this.policyDecisionRepo.findOne({
+            where:{id:Number(dto.policyDecisionId)},
+        });
+        if(!decision){
+            throw new NotFoundException('Policy decision not Found');
+        }
+        const action = this.actionRepo.create({
+            policyDecision:decision,
+            actionType:dto.actionType,
+            outcome:dto.outcome,
+            evidence:dto.evidence??{},
+        });
+        return await this.actionRepo.save(action);
+    }
+
 }
