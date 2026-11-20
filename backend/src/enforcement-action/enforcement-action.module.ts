@@ -5,10 +5,11 @@ import { EnforcementAction } from './entities/enforcement-action.entity.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PolicyDecisionModule } from '../policy-decision/policy-decision.module.js';
 import { PolicyDecision } from '../policy-decision/entities/policy-decision.entity.js';
+import { AgentEnforcementController } from './agent-enforcement.controller.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([EnforcementAction,PolicyDecision])],
-  controllers: [EnforcementActionController],
+  controllers: [EnforcementActionController, AgentEnforcementController],
   providers: [EnforcementActionService],
 })
 export class EnforcementActionModule {}
