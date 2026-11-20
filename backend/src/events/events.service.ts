@@ -33,6 +33,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
     import { AgentStatus } from '../agent/enum/agent-status.js';
     import { AgentEventBatchDto } from './dto/agent-event-batch.dto.js';
     import { QueryEventsDto } from './dto/query-event.dto.js';
+import { AlertService } from '../alert/alert.service.js';
   
     @Injectable()
     export class EventsService {
@@ -73,6 +74,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
         private readonly findingRepo: Repository<Findings>,
         @InjectRepository(AgentInstallations)
         private readonly agentInstallationRepo: Repository<AgentInstallations>,
+        private readonly alertService: AlertService,
       ) {}
   
      
@@ -391,20 +393,12 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
               }),
             );
 
-            await this.alertRepo.save(
-              this.alertRepo.create({
-                workspace,
-                workspaceId: workspace.id,
-                riskFindingId: savedRiskFinding.id,
-                assignedUser: null,
-                assignedUserId: null,
-                alertType: AlertType.POLICY_VIOLATION,
-                title: `[${policyDecisionStr}] ${policyTitle}: ${matchedVal}`.slice(0, 200),
-                severity: isBlock ? AlertSeverity.HIGH : AlertSeverity.MEDIUM,
-                status: AlertStatus.OPEN,
-                resolvedAt: null,
-              }),
-            );
+            await this.alertService.createAlert(workspace.id, {
+              riskFindingId: savedRiskFinding.id,
+              alertType: AlertType.POLICY_VIOLATION,
+              title: `[${policyDecisionStr}] ${policyTitle}: ${matchedVal}`.slice(0, 200),
+              severity: isBlock ? AlertSeverity.HIGH : AlertSeverity.MEDIUM
+            });
           }
 
           acceptedCount++;                                                                                                                                                                 
