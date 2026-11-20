@@ -70,4 +70,21 @@ export class FindingService {
             throw new BadRequestException();
         }
     }
+    async findByEvent(workspaeId:number,eventId:number):Promise<Findings[]>{
+        try{
+            return await this.findingsRepo.find({
+                where:{
+                    event:{
+                        id:eventId,
+                        workspace:{id:workspaeId}
+                    }
+                },
+                relations:{sensetiveDataType:true},
+                order:{createdAt: 'DESC'},
+            });
+        }
+        catch{
+            throw new BadRequestException();
+        }
+    }
 }
