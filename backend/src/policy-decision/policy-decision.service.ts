@@ -32,4 +32,17 @@ export class PolicyDecisionService {
         }
         return decision;
     }
+    async findByEvent(workspaceId:number,eventId:number):Promise<PolicyDecision[]>{
+        return await this.decisionRepo.find({
+            where:{
+                event:{id:eventId, workspace:{id:workspaceId}},
+            },
+            relations:{
+                event:true,
+                policyVersion:{policy:true},
+                enforcementActions:true,
+            },
+            order:{evaluatedAt:'DESC'},
+        });
+    }
 }
