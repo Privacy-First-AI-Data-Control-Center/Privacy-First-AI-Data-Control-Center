@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { WorkspaceMemberService } from './workspace-member.service.js';
 import { CreateWorkspaceMemberDto } from './dto/create-workspace-member.dto.js';
 import { WorkspaceMembers } from './entity/workspace-members.js';
 import { JwtGuard } from '../auth/jwtGuard.guard.js';
+import { UpdateWorkspaceMemberDto } from './dto/update-workpsace-member.dto.js';
 
 @Controller('workspace/:workspaceId/members')
 export class WorkspaceMemberController {
@@ -25,5 +26,11 @@ export class WorkspaceMemberController {
   @UseGuards(JwtGuard)
   async removeMember(@Param('workspaceId') workspaceId: string, @Param('memberId') memberId: string):Promise<string>{
     return await this.workspaceMemberService.removeMember(workspaceId, memberId)
+  }
+
+  @Patch('/:memberId')
+  @UseGuards(JwtGuard)
+  async updateMemberRole(@Param('workspaceId') workspaceId: string, @Param('memberId') memberId: string, @Body() updateWorkspaceMemberDto: UpdateWorkspaceMemberDto): Promise<string>{
+    return await this.workspaceMemberService.updateMemberRole(workspaceId, memberId, updateWorkspaceMemberDto);
   }
 }

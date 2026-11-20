@@ -32,4 +32,10 @@ export class UserController {
   async deleteUser(@Req() req: any): Promise<string>{
     return await this.userService.deleteUser(req.user.id);
   }
+
+  @Get('/me/workspaces')
+  @UseGuards(JwtGuard)
+  async getMyWorkpaces(@Req() req: any): Promise<any>{
+    return await this.userService.getMyWorkpaces(req.user.id)
+  }
 }
