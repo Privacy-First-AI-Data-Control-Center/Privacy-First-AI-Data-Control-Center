@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';                                                                                                                        
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';                                                                                                                        
     import { InjectRepository } from '@nestjs/typeorm';                                                                                                                                    
     import { Repository } from 'typeorm';                                                                                                                                                  
     import { Integrations } from './entities/integration.entity.js';                                                                                                                       
@@ -10,7 +10,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
     import { UpdateIntegrationDto } from './dto/update-integration.dto.js';                                                                                                                
     import { QueryIntegrationDto } from './dto/query-integration.dto.js';                                                                                                                  
     import { IntegrationStatus } from './enum/integration-status.js';                                                                                                                      
-    import { AuditLogsService } from '../audit-logs/audit-logs.service.js';                                                                                                                                                                                    
+    import { AuditLogsService } from '../audit-logs/audit-logs.service.js';    
+    import { DataSource } from 'typeorm';                                                                                                                                                                             
+import { AuditLogs } from '../audit-logs/entities/audit-logs.entity.js';
+import { ActorType } from '../audit-logs/enum/actor-type.js';
     @Injectable()                                                                                                                                                                          
     export class IntegrationsService {                                                                                                                                                     
       constructor(                                                                                                                                                                         
@@ -23,46 +26,101 @@ import { Injectable, NotFoundException } from '@nestjs/common';
         @InjectRepository(ConnectorTypes)                                                                                                                                                  
         private readonly connectorTypeRepo: Repository<ConnectorTypes>,                                                                                                                    
         private readonly connectorsService: ConnectorsService,   
-        private readonly auditLogsService :AuditLogsService ,                                                                                                                          
+        private readonly auditLogsService :AuditLogsService ,  
+        private readonly dataSource :DataSource ,                                                                                                                        
       ) {}                                                                                                                                                                                 
                                                                                                                                                                                            
-      async create(workspaceId: number, dto: CreateIntegrationDto ,userId?: number): Promise<Integrations> {                                                                                                
-        const workspace = await this.workspaceRepo.findOne({ where: { id: workspaceId } });                                                                                                
-        if (!workspace) {                                                                                                                                                                  
-          throw new NotFoundException(`Workspace #${workspaceId} not found`);                                                                                                              
-        }                                                                                                                                                                                  
-                                                                                                                                                                                           
-        const connectorType = await this.connectorTypeRepo.findOne({                                                                                                                       
-          where: { id: dto.connectorTypeId },                                                                                                                                              
-        });                                                                                                                                                                                
-        if (!connectorType) {                                                                                                                                                              
-          throw new NotFoundException(`Connector type #${dto.connectorTypeId} not found`);                                                                                                 
-        }                                                                                                                                                                                  
-                                                                                                                                                                                           
-        const status = dto.status ?? IntegrationStatus.ACTIVE;                                                                                                                             
-        const integration = this.integrationRepo.create({                                                                                                                                  
-          workspace,                                                                                                                                                                       
-          connectorType,                                                                                                                                                                   
-          deviceId: dto.deviceId,                                                                                                                                                          
-          displayName: dto.displayName,                                                                                                                                                    
-          version: dto.version ?? '1.0.0',                                                                                                                                                 
-          status,                                                                                                                                                                          
-          secretReference: dto.secretReference,                                                                                                                                            
-          connectedAt: status === IntegrationStatus.ACTIVE ? new Date() : undefined,                                                                                                       
-        });                                                                                                                                                                                
-                                                                                                                                                                                           
-        const saved = await this.integrationRepo.save(integration);  
-        await this.auditLogsService.log({
-          workspaceId,
-          actorUserId: userId,
-          action: 'INTEGRATION_CONNECTED',
-          targetType: 'INTEGRATION',
-          targetId: saved.id,
-          metadata: { displayName: saved.displayName, connectorSlug: connectorType.slug },
+      async create(workspaceId: number, dto: CreateIntegrationDto ,userId?: number): Promise<Integrations> {   
+        
+        const workspace = await this.workspaceRepo.findOne({ where: { id: workspaceId } });
+        if (!workspace) {
+          throw new NotFoundException(`Workspace #${workspaceId} not found`);
+        }
+  
+        const connectorType = await this.connectorTypeRepo.findOne({
+          where: { id: dto.connectorTypeId },
         });
-        await this.refreshCapabilities(workspaceId, saved.id, userId);                                                                                                                      
-                                                                                                                                    
-        return this.findOne(workspaceId, saved.id);                                                                                                                                        
+        if (!connectorType) {
+          throw new NotFoundException(`Connector type #${dto.connectorTypeId} not found`);
+        }
+
+        if (dto.deviceId) {
+          const duplicate = await this.integrationRepo.findOne({
+            where: {
+              workspace: { id: workspaceId },
+              connectorType: { id: dto.connectorTypeId },
+              deviceId: dto.deviceId,
+              status: IntegrationStatus.ACTIVE,
+            },
+          });
+          if (duplicate) {
+            throw new ConflictException(
+              `Active integration for connector "${connectorType.slug}" on device "${dto.deviceId}" already exists in workspace #${workspaceId}`,
+            );
+          }
+        }
+  
+        const { capabilities: defaultCaps } = await this.connectorsService.getCapabilities(connectorType.id);
+        const status = dto.status ?? IntegrationStatus.ACTIVE;
+  
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+        
+          const integration = queryRunner.manager.create(Integrations, {
+            workspace,
+            connectorType,
+            deviceId: dto.deviceId,
+            displayName: dto.displayName,
+            version: dto.version ?? '1.0.0',
+            status,
+            secretReference: dto.secretReference,
+            connectedAt: status === IntegrationStatus.ACTIVE ? new Date() : undefined,
+          });
+          const saved = await queryRunner.manager.save(Integrations, integration);
+  
+         
+          const capEntities = defaultCaps.map((cap) =>
+            queryRunner.manager.create(IntegrationCapabilities, {
+              integration: saved,
+              capabilityCode: cap.code,
+              availability: 'observed',
+              evidenceSource: 'connector_catalog',
+              details: { name: cap.name, type: cap.type, description: cap.description },
+            }),
+          );
+          if (capEntities.length > 0) {
+            await queryRunner.manager.save(IntegrationCapabilities, capEntities); 
+          }
+  
+          
+          const auditLog = queryRunner.manager.create(AuditLogs, {
+            workspace, 
+            workspaceId,
+            actorUserId: userId ?? null,
+            actorType: userId ? ActorType.USER : ActorType.SYSTEM,
+            action: 'INTEGRATION_CONNECTED',
+            targetType: 'INTEGRATION',
+            targetId: String(saved.id),
+            metadata: { displayName: saved.displayName, connectorSlug: connectorType.slug }, 
+          }); 
+          await queryRunner.manager.save(AuditLogs, auditLog);
+  
+         
+          await queryRunner.commitTransaction();
+          return this.findOne(workspaceId, saved.id); 
+        } catch (err) {
+        
+          await queryRunner.rollbackTransaction();
+          throw err;
+        } finally {
+         
+          await queryRunner.release(); 
+        }
+
+
+                                                                                                                                               
       }                                                                                                                                                                                    
                                                                                                                                                                                            
       async findAll(workspaceId: number, query: QueryIntegrationDto) {                                                                                                                     
