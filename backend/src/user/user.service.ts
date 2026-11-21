@@ -94,4 +94,9 @@ export class UserService {
     async getMyWorkpaces(userId: string): Promise<Workspaces[]>{
         return await this.workspaceService.getMyWorkpaces(userId);
     }
+
+    async updatePasswordHash(userId: number, passwordHash: string): Promise<boolean>{
+        const res = (await this.userRepo.update({ id: userId }, { passwordHash })).affected;
+        return res != null && res > 0;
+    }
 }
