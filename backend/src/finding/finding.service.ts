@@ -51,8 +51,8 @@ export class FindingService {
             for (const finding of findings){
                 const status = finding.status;
                 const severity = finding.sensetiveDataType.severity;
-                byStatus[status]+=1;
-                bySeverity[severity]+=1;
+                byStatus[status]+=(byStatus[status] ?? 0)+1;
+                bySeverity[severity]+=(bySeverity[severity] ?? 0)+1;
             }
             return {total:findings.length,byStatus,bySeverity}
         }
