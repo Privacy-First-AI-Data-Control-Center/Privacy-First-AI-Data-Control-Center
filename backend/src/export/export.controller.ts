@@ -10,7 +10,8 @@ import { Role } from '../user/enum/role.js';
 
 @ApiTags('Exports')
 @Controller('workspace/:workspaceId/exports')
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard, WorkspaceRoleGuard)
+@WorkspaceRoles(Role.OWNER, Role.ADMIN)
 export class ExportController {
   constructor(private readonly exportJobsService: ExportService) {}
 

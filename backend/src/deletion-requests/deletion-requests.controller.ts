@@ -10,7 +10,8 @@ import { Role } from '../user/enum/role.js';
 
 @ApiTags('Deletion Requests')
 @Controller('workspace/:workspaceId/deletion-requests')
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard, WorkspaceRoleGuard)
+@WorkspaceRoles(Role.OWNER, Role.ADMIN)
 export class DeletionRequestsController {
   constructor(private readonly deletionRequestsService: DeletionRequestsService) {}
 
