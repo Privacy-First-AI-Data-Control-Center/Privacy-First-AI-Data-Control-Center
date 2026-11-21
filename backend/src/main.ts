@@ -26,6 +26,7 @@ async function bootstrap() {
   
     const doc= SwaggerModule.createDocument(app,config);
     SwaggerModule.setup('api',app,doc);
+    app.getHttpAdapter().get('/', (req, res) => res.redirect('/api'));
 
   await app.listen(process.env.PORT ?? 3000);
 }
