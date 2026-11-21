@@ -15,21 +15,23 @@ import { StatisticsQueryDto } from './dto/statistics-query.dto.js';
 import { ApiQuery } from '@nestjs/swagger';
 import { AlertStatus } from './enum/alert-status.js';
 import { AlertSeverity } from './enum/alert-severity.js';
+import { WorkspaceRoleGuard } from './guard/workspace-role.guard.js';
+import { WorkspaceRoles } from './guard/workspace-roles.decorator.js';
 
 @Controller('workspace/:workspaceId/alerts')
-@UseGuards(JwtGuard, RolesGuard)
+@UseGuards(JwtGuard, WorkspaceRoleGuard)
 export class AlertController {
   constructor(private readonly alertService: AlertService) {}
 
   
   @Get('/statistics')
-  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @WorkspaceRoles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   async getStatistics(@Param('workspaceId', ParseIntPipe) workspaceId: number, @Query() query: StatisticsQueryDto){
     return await this.alertService.getStatistics(workspaceId, query.from, query.to);
   }
 
  @Get()
- @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+ @WorkspaceRoles(Role.OWNER, Role.ADMIN, Role.MEMBER)
  @ApiQuery({ name: 'status', required: false, enum: AlertStatus })
 @ApiQuery({ name: 'severity', required: false, enum: AlertSeverity })
 async getAllAlerts(@Param('workspaceId') workspaceId: string, @Query('status') status: string, @Query('severity') severity: string): Promise<Alerts[]>{
@@ -37,19 +39,19 @@ async getAllAlerts(@Param('workspaceId') workspaceId: string, @Query('status') s
 }
  
   @Post()
-  @Roles(Role.OWNER, Role.ADMIN)
+  @WorkspaceRoles(Role.OWNER, Role.ADMIN)
   async createAlert(@Param('workspaceId', ParseIntPipe) workspaceId: number, @Body() createAlertDto: CreateAlertDto, @Req() req: any): Promise<Alerts>{
     return await this.alertService.createAlert(workspaceId, createAlertDto, req.user.id);
   }
 
   @Get('/:alertId')
-  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @WorkspaceRoles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   async getAlertById(@Param('workspaceId', ParseIntPipe) workspaceId: number, @Param('alertId', ParseIntPipe) alertId: number): Promise<Alerts>{
     return await this.alertService.getAlertById(workspaceId, alertId);
   }
 
  @Patch('/:alertId')
- @Roles(Role.OWNER, Role.ADMIN)
+ @WorkspaceRoles(Role.OWNER, Role.ADMIN)
 async updateAlert(@Param('workspaceId', ParseIntPipe) workspaceId: number, @Param('alertId', ParseIntPipe) 
 alertId: number, @Body() updateAlertDto: UpdateAlertDto, @Req() req: any): Promise<string>
 {
@@ -58,7 +60,7 @@ alertId: number, @Body() updateAlertDto: UpdateAlertDto, @Req() req: any): Promi
 
  
   @Post('/:alertId/acknowledge')
-  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @WorkspaceRoles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   async acknowlegeAlert(@Param('workspaceId', ParseIntPipe) workspaceId: number, 
   @Param('alertId', ParseIntPipe) alertId: number, @Body() body: AlertActionDto, @Req() req: any): Promise<string>
   {
@@ -67,7 +69,7 @@ alertId: number, @Body() updateAlertDto: UpdateAlertDto, @Req() req: any): Promi
   }
 
    @Post('/:alertId/resolve')
-   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+   @WorkspaceRoles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   async resolveAlert(@Param('workspaceId', ParseIntPipe) workspaceId: number, 
   @Param('alertId', ParseIntPipe) alertId: number, @Body() body: AlertActionDto, @Req() req: any): Promise<string>
   {
@@ -76,7 +78,7 @@ alertId: number, @Body() updateAlertDto: UpdateAlertDto, @Req() req: any): Promi
   }
 
    @Post('/:alertId/reopen')
-   @Roles(Role.OWNER, Role.ADMIN)
+   @WorkspaceRoles(Role.OWNER, Role.ADMIN)
   async reopenAlert(@Param('workspaceId', ParseIntPipe) workspaceId: number, 
   @Param('alertId', ParseIntPipe) alertId: number, @Body() body: AlertActionDto, @Req() req: any): Promise<string>
   {
@@ -85,13 +87,13 @@ alertId: number, @Body() updateAlertDto: UpdateAlertDto, @Req() req: any): Promi
   }
 
   @Post('/:alertId/assign')
-  @Roles(Role.OWNER, Role.ADMIN)
+  @WorkspaceRoles(Role.OWNER, Role.ADMIN)
   async assignAlert(@Param('workspaceId', ParseIntPipe) workspaceId: number, @Param('alertId', ParseIntPipe) alertId: number, @Body() assignAlertDto: AssignAlertDto, @Req() req: any): Promise<string>{
     return await this.alertService.assignAlert(workspaceId, alertId, assignAlertDto, req.user.id);
   }
 
   @Get('/:alertId/history')
-  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @WorkspaceRoles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   async getAlertHistory(@Param('workspaceId', ParseIntPipe) workspaceId: number, @Param('alertId', ParseIntPipe) alertId: number): Promise<AlertHistories[]>{
     return await this.alertService.getAlertHistory(workspaceId, alertId);
   }
