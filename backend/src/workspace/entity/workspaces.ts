@@ -9,6 +9,8 @@ import { Alerts } from "../../alert/entities/alerts.entity.js";
 import { AuditLogs } from "../../audit-logs/entities/audit-logs.entity.js";
 import { RetentionSettings } from "../../retention/entities/retention-settings.entity.js";
 import { Policies } from "../../policy/entities/policy.entity.js";
+import { DeletionRequests } from "../../deletion-requests/entities/deletion-requests.entity.js";
+import { ExportJobs } from "../../export/entities/export.entity.js";
 
 @Entity()
 export class Workspaces{
@@ -63,6 +65,11 @@ export class Workspaces{
 
     @OneToMany(() => RetentionSettings, (setting) => setting.workspace)
     retentionSettings: Relation<RetentionSettings>[];
+    @OneToMany(() => DeletionRequests, (request) => request.workspace)
+    deletionRequests: Relation<DeletionRequests>[];
+
+    @OneToMany(() => ExportJobs, (exportJob) => exportJob.workspace)
+    exportJobs: Relation<ExportJobs>[];
      //.............
 
      //tasin
