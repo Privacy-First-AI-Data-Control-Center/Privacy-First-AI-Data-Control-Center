@@ -2,15 +2,15 @@ import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/
 import { AuditLogsService } from './audit-logs.service.js';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtGuard } from '../auth/jwtGuard.guard.js';
-import { RolesGuard } from '../auth/roles/roles.guard.js';
-import { Roles } from '../auth/roles/roles.decorator.js';
+import { WorkspaceRoleGuard } from '../alert/guard/workspace-role.guard.js';
+import { WorkspaceRoles } from '../alert/guard/workspace-roles.decorator.js';
 import { Role } from '../user/enum/role.js';
 import { QueryAuditLogsDto } from './dto/query-audit-log.dto.js';
 import { AuditLogs } from './entities/audit-logs.entity.js';
 @ApiTags('Audit Logs')
 @Controller('workspace/:workspaceId/audit-logs')
-@UseGuards(JwtGuard, RolesGuard)
-@Roles(Role.OWNER, Role.ADMIN)
+@UseGuards(JwtGuard, WorkspaceRoleGuard)
+@WorkspaceRoles(Role.OWNER, Role.ADMIN)
 export class AuditLogsController {
   constructor(private readonly auditLogsService: AuditLogsService) {}
 
