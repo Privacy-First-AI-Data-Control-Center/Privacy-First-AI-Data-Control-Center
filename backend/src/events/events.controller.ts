@@ -16,7 +16,7 @@ import {
     import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtGuard } from '../auth/jwtGuard.guard.js';
   
-    @ApiTags('Events & Telemetry (Shohag)') 
+    @ApiTags('Events & Telemetry') 
    
                                                                                                                                                                                          
     @Controller()                                                                                                                                                                          

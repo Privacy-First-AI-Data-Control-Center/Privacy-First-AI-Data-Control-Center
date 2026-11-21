@@ -2,7 +2,7 @@
     import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';                                                                                                                  
     import { ConnectorsService } from './connectors.service.js';                                                                                                                           
                                                                                                                                                                                            
-    @ApiTags('Connectors (Shohag)')                                                                                                                                                        
+    @ApiTags('Connectors')                                                                                                                                                        
     @Controller('connectors')                                                                                                                                                              
     export class ConnectorsController {                                                                                                                                                    
       constructor(private readonly connectorsService: ConnectorsService) {}                                                                                                                

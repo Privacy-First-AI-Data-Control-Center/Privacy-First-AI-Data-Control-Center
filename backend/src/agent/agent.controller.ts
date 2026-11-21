@@ -2,7 +2,7 @@ import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
     import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
     import { AgentService } from './agent.service.js';
   
-    @ApiTags('Agent Sync (Shohag)')
+    @ApiTags('Agent Sync')
     @Controller('agent')
     export class AgentController {
       constructor(private readonly agentService: AgentService) {}
