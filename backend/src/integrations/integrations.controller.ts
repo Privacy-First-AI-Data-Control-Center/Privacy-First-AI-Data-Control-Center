@@ -10,15 +10,15 @@ import {
       Patch,                                                                                                                                                                               
       Post,                                                                                                                                                                                
       Query,
-      Req,
-      UseGuards,                                                                                                                                                                               
-    } from '@nestjs/common';                                                                                                                                                               
-    import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';                                                                                                                  
-    import { IntegrationsService } from './integrations.service.js';                                                                                                                       
-    import { CreateIntegrationDto } from './dto/create-integration.dto.js';                                                                                                                
-    import { UpdateIntegrationDto } from './dto/update-integration.dto.js';                                                                                                                
-    import { QueryIntegrationDto } from './dto/query-integration.dto.js';                                                                                                                  
+      UseGuards,
+    } from '@nestjs/common';
+    import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+    import { IntegrationsService } from './integrations.service.js';
+    import { CreateIntegrationDto } from './dto/create-integration.dto.js';
+    import { UpdateIntegrationDto } from './dto/update-integration.dto.js';
+    import { QueryIntegrationDto } from './dto/query-integration.dto.js';
 import { JwtGuard } from '../auth/jwtGuard.guard.js';
+import { CurrentUser } from '../common/decorators/current-user.decorator.js';
                                                                                                                                                                                            
     @ApiTags('Integrations')                                                                                                                                                      
     @Controller('workspaces/:workspaceId/integrations')   
@@ -29,12 +29,12 @@ import { JwtGuard } from '../auth/jwtGuard.guard.js';
       @ApiOperation({ summary: 'Connect an AI tool or external service to a workspace' })                                                                                                  
       @ApiResponse({ status: 201, description: 'Integration connected' })                                                                                                                  
       @Post()                                                                                                                                                                              
-      async create(                                                                                                                                                                        
-        @Param('workspaceId', ParseIntPipe) workspaceId: number,                                                                                                                           
-        @Body() dto: CreateIntegrationDto,  
-        @Req() req: any  ,                                                                                                                                             
-      ) {                                                                                                                                                                                  
-        return this.integrationsService.create(workspaceId, dto,req.user.id);                                                                                                                          
+      async create(
+        @Param('workspaceId', ParseIntPipe) workspaceId: number,
+        @Body() dto: CreateIntegrationDto,
+        @CurrentUser('id') userId: number,
+      ) {
+        return this.integrationsService.create(workspaceId, dto, userId);
       }                                                                                                                                                                                    
                                                                                                                                                                                            
       @ApiOperation({ summary: 'List connected workspace integrations' })                                                                                                                  
@@ -57,13 +57,13 @@ import { JwtGuard } from '../auth/jwtGuard.guard.js';
                                                                                                                                                                                            
       @ApiOperation({ summary: 'Update integration configuration' })                                                                                                                       
       @Patch(':integrationId')                                                                                                                                                             
-      async update(                                                                                                                                                                        
-        @Param('workspaceId', ParseIntPipe) workspaceId: number,                                                                                                                           
-        @Param('integrationId', ParseIntPipe) integrationId: number,                                                                                                                       
-        @Body() dto: UpdateIntegrationDto, 
-        @Req() req: any                                                                                                                                                 
-      ) {                                                                                                                                                                                  
-        return this.integrationsService.update(workspaceId, integrationId, dto ,req.user.id);                                                                                                           
+      async update(
+        @Param('workspaceId', ParseIntPipe) workspaceId: number,
+        @Param('integrationId', ParseIntPipe) integrationId: number,
+        @Body() dto: UpdateIntegrationDto,
+        @CurrentUser('id') userId: number,
+      ) {
+        return this.integrationsService.update(workspaceId, integrationId, dto, userId);
       }                                                                                                                                                                                    
                                                                                                                                                                                            
       @ApiOperation({ summary: 'Test an integration connection and permissions' })                                                                                                         
@@ -79,24 +79,24 @@ import { JwtGuard } from '../auth/jwtGuard.guard.js';
       @ApiOperation({ summary: 'Disconnect an integration' })                                                                                                                              
       @Post(':integrationId/disconnect')                                                                                                                                                   
       @HttpCode(HttpStatus.OK)                                                                                                                                                             
-      async disconnect(                                                                                                                                                                    
-        @Param('workspaceId', ParseIntPipe) workspaceId: number,                                                                                                                           
+      async disconnect(
+        @Param('workspaceId', ParseIntPipe) workspaceId: number,
         @Param('integrationId', ParseIntPipe) integrationId: number,
-         @Req() req: any                                                                                                                        
-      ) {                                                                                                                                                                                  
-        return this.integrationsService.disconnect(workspaceId, integrationId,req.user.id);                                                                                                            
-      }                                                                                                                                                                                    
-                                                                                                                                                                                           
+        @CurrentUser('id') userId: number,
+      ) {
+        return this.integrationsService.disconnect(workspaceId, integrationId, userId);
+      }
+
       @ApiOperation({ summary: 'Remove an integration record (soft delete)' })
       @Delete(':integrationId')
       async remove(
         @Param('workspaceId', ParseIntPipe) workspaceId: number,
         @Param('integrationId', ParseIntPipe) integrationId: number,
-         @Req() req: any 
+        @CurrentUser('id') userId: number,
       ) {
-        return this.integrationsService.remove(workspaceId, integrationId,req.user.id);
+        return this.integrationsService.remove(workspaceId, integrationId, userId);
       }
-  
+
       @ApiOperation({ summary: 'View capabilities available for an integration' })
       @Get(':integrationId/capabilities')
       async getCapabilities(
@@ -105,15 +105,15 @@ import { JwtGuard } from '../auth/jwtGuard.guard.js';
       ) {
         return this.integrationsService.getCapabilities(workspaceId, integrationId);
       }
-  
+
       @ApiOperation({ summary: 'Refresh integration capability information' })
       @Post(':integrationId/capabilities/refresh')
       @HttpCode(HttpStatus.OK)
       async refreshCapabilities(
         @Param('workspaceId', ParseIntPipe) workspaceId: number,
         @Param('integrationId', ParseIntPipe) integrationId: number,
-         @Req() req: any 
+        @CurrentUser('id') userId: number,
       ) {
-        return this.integrationsService.refreshCapabilities(workspaceId, integrationId ,req.user.id);
+        return this.integrationsService.refreshCapabilities(workspaceId, integrationId, userId);
       }
     }
