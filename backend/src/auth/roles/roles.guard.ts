@@ -7,8 +7,8 @@ export class RolesGuard implements CanActivate{
     constructor(private readonly reflector: Reflector){}
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
         const requiredRole = this.reflector.getAllAndOverride<string[]>('roles', [
-            context.getClass(),
-            context.getHandler()
+            context.getHandler(),
+            context.getClass()
         ]);
 
         if(!requiredRole){
