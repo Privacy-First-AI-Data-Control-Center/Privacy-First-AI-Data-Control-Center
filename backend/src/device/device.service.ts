@@ -5,10 +5,14 @@ import { Repository } from 'typeorm';
 import { CreateDeviceDto } from './dto/create-device.dto.js';
 import { UpdateDeviceDto } from './dto/update-device.dto.js';
 import { DeviceStatus } from './enum/device-status.js';
+import { AgentInstallations } from '../agent/entity/agent-installations.js';
+import { AgentService } from '../agent/agent.service.js';
+import { Workspaces } from '../workspace/entity/workspaces.js';
+import { WorkspaceService } from '../workspace/workspace.service.js';
 
 @Injectable()
 export class DeviceService {
-    constructor(@InjectRepository(Devices) private deviceRepo: Repository<Devices>){}
+    constructor(@InjectRepository(Devices) private deviceRepo: Repository<Devices>, private agentService: AgentService, private workspaceService: WorkspaceService){}
 
     async enrollDevice(createDeviceDto: CreateDeviceDto): Promise<string>{
         try{
@@ -92,6 +96,37 @@ export class DeviceService {
             throw new NotFoundException('Device not found');
         }
         return data?.deviceStatus;
+    }
+
+    async getAgentList(workspaceId: string, deviceId: string): Promise<AgentInstallations[]>{
+        const workspace = await this.workspaceService.getWorkspaceById(workspaceId);
+        if (!workspace) {
+            throw new NotFoundException('Workspace not found');
+        }
+        return await this.agentService.getAgentList(deviceId);
+    }
+
+    async revokeDevice(workspaceId: string, deviceId: string): Promise<string> {
+        const device = await this.deviceRepo.findOne({
+            where: {
+                id: parseInt(deviceId),
+                workspace: {
+                    id: parseInt(workspaceId),
+                },
+            },
+        });
+
+        if (!device) {
+            throw new NotFoundException(`Device with id ${deviceId} not found in workspace ${workspaceId}`);
+        }
+
+        device.deviceStatus = DeviceStatus.REVOKED;
+        device.revokedAt = new Date();
+        await this.deviceRepo.save(device);
+
+        await this.agentService.revokeDeviceAgents(parseInt(deviceId));
+
+        return 'Device credentials revoked successfully';
     }
 }
 

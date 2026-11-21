@@ -312,4 +312,11 @@ export class AgentService {
       policies: policiesWithRules,
     };
   }
+
+  async revokeDeviceAgents(deviceId: number): Promise<void> {
+    await this.agentInstallationRepo.update(
+      { device: { id: deviceId } },
+      { agentStatus: AgentStatus.REVOKED },
+    );
+  }
 }
