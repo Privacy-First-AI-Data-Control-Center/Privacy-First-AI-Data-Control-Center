@@ -9,7 +9,7 @@ import { Roles } from '../auth/roles/roles.decorator.js';
 import { Role } from '../user/enum/role.js';
 
 @ApiTags('Findings')
-@Controller('workspace/:workspaceId')
+@Controller('workspaces/:workspaceId')
 @UseGuards(JwtGuard, RolesGuard)
 export class FindingController {
   constructor(private readonly findingService: FindingService) {}
