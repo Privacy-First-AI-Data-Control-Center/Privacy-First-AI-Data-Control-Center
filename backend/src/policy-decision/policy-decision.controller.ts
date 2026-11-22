@@ -9,7 +9,7 @@ import { QueryPolicyDecisionDto } from './dto/query-policy-decision.dto.js';
 import { PolicyDecision } from './entities/policy-decision.entity.js';
 
 @ApiTags('Policy Decisions')
-@Controller('workspace/:workspaceId')
+@Controller('workspaces/:workspaceId')
 @UseGuards(JwtGuard, RolesGuard)
 @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER, Role.VIEWER)
 export class PolicyDecisionController {

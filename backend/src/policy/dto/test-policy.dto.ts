@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsArray, IsInt, IsOptional, IsString } from "class-validator";
+import { IsArray, IsInt, IsObject, IsOptional, IsString } from "class-validator";
 
 export class TestPolicyDto{
     @IsOptional()
@@ -14,6 +14,6 @@ export class TestPolicyDto{
     integration?:string;
     @IsOptional()
     @IsArray()
-    @IsString()
+    @IsString({each:true})
     sensitiveType?:string[];
 }

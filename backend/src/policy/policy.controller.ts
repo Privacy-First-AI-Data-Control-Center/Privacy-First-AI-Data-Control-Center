@@ -17,7 +17,7 @@ import { partialUpdatePolicyDto } from './dto/partial-update-policy.dto.js';
 import { TestPolicyDto } from './dto/test-policy.dto.js';
 
 @ApiTags('Policies')
-@Controller('workspace/:workspaceId/policy')
+@Controller('workspaces/:workspaceId/policy')
 @UseGuards(JwtGuard, RolesGuard)
 export class PolicyController {
   constructor(private readonly policyService: PolicyService) {}
