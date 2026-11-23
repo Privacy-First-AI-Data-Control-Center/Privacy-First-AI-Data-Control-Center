@@ -10,7 +10,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     const requestId = (req.headers['x-request-id'] as string) || randomUUID();
     const startTime = Date.now();
 
-    // Attach unique Request ID to response header so clients/Swagger can trace every request
+   
     res.setHeader('X-Request-Id', requestId);
 
     res.on('finish', () => {

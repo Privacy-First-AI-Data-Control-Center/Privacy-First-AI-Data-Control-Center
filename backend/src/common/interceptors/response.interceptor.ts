@@ -49,7 +49,7 @@ export class ResponseInterceptor implements NestInterceptor {
           response.setHeader('X-Response-Time', `${durationMs}ms`);
         }
 
-        // Preserve file downloads and raw strings (e.g., JWT token from POST /auth/login)
+       
         if (
           data === null ||
           data === undefined ||

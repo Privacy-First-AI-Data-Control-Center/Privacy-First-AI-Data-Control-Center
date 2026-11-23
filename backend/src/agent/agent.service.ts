@@ -61,7 +61,7 @@ export class AgentService {
     }
   }
 
-  // --- Member 1: Agent Lifecycle & Diagnostics Operations ---
+
 
   async completeEnrollment(dto: CompleteEnrollmentDto) {
     const device = await this.deviceRepo.findOne({
@@ -225,7 +225,7 @@ export class AgentService {
     };
   }
 
-  // --- Member 2: Agent Sync Operations ---
+ 
 
   async getAgentConnectorsConfig(workspaceId?: number, deviceId?: string) {
     const connectorTypes = await this.connectorsService.findAll();
