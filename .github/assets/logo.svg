@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1024" height="1024">
+  <defs>
+    <radialGradient id="bgGlow2" cx="52%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.18"/>
+      <stop offset="60%" stop-color="#0F172A" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#070B14" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gateGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="ringGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#D2DEEB"/>
+    </linearGradient>
+    <linearGradient id="coreGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A7F3D0"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="#0A0F1A"/>
+  <rect width="512" height="512" fill="url(#bgGlow2)"/>
+
+  <!-- Control Center 'C' Containment Perimeter (center 234, 256; r=114; angle 48..312 deg) -->
+  <path
+    d="M 310.3 171.3 A 114 114 0 1 0 310.3 340.7"
+    fill="none"
+    stroke="url(#ringGrad2)"
+    stroke-width="34"
+    stroke-linecap="round"
+  />
+
+  <!-- Zero-Egress Privacy Guard Gate (Vertical Emerald Barrier) -->
+  <rect
+    x="362"
+    y="168"
+    width="34"
+    height="176"
+    rx="17"
+    fill="url(#gateGrad2)"
+  />
+
+  <!-- Protected Local AI Core Spark -->
+  <path
+    d="M 234 202
+       C 240 238, 252 250, 288 256
+       C 252 262, 240 274, 234 310
+       C 228 274, 216 262, 180 256
+       C 216 250, 228 238, 234 202 Z"
+    fill="url(#coreGrad2)"
+  />
+</svg>
