@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🌐 Live Swagger API Documentation
+    url: https://dynamic-enchantment-production-a30c714b.up.railway.app/api
+    about: Inspect and test all 140 NestJS REST API endpoints before wiring Frontend screens

@@ -1,0 +1,43 @@
+name: 🐛 Bug Report
+description: Report a bug in the Frontend UI, NestJS Backend API, or Local Hook Agent
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      options:
+        - "Frontend (Web Dashboard)"
+        - "Backend (NestJS API)"
+        - "Local Agent (Hook Daemon / SQLite Queue)"
+        - "Deployment / CI"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Summary
+      placeholder: Clear description of what went wrong...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      value: |
+        1. Go to '...'
+        2. Trigger '...'
+        3. Observe error '...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs. Actual Behavior
+      placeholder: What should happen vs. what actually happened (include status codes or logs if applicable).
+    validations:
+      required: true
