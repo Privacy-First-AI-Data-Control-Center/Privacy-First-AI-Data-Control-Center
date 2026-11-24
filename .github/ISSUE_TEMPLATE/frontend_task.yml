@@ -1,0 +1,59 @@
+name: 🖥️ Frontend Task (Kanban Card)
+description: Create a structured Frontend UI page, component, or API integration task for the Control Center board
+title: "[FE] "
+labels: ["frontend"]
+body:
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module / Feature Area
+      description: Select the Control Center module this task belongs to
+      options:
+        - "Shared Setup — App Shell, Design System, API Client & Routing"
+        - "Auth & Workspaces — Login, Register, RBAC Members & Devices (Ayan)"
+        - "Telemetry & Integrations — Connectors, Live Events, Sync, Reports & Search (Shohag)"
+        - "Policies & Risk — Policy Builder, Versions, Simulator, Findings & Decisions (Ahnaf)"
+        - "Dashboard & Governance — Overview KPIs, Alerts, Audit Logs, Retention & Exports (Munna)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "High (Core Milestone)"
+        - "Medium (Standard Sprint)"
+        - "Low (UI Polish / Enhancement)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: User Story / Screen Goal
+      description: What can the user view or do on this screen?
+      placeholder: "As a Workspace Admin, I want to view and configure AI tool integrations so that..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: endpoints
+    attributes:
+      label: Backend API Endpoints Consumed
+      description: List the `/api/v1/...` Swagger routes connected to this UI
+      placeholder: |
+        - GET /api/v1/connectors
+        - POST /api/v1/workspaces/:workspaceId/integrations
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      value: |
+        - [ ] Responsive layout matching Control Center design system
+        - [ ] Connected to live `/api/v1` endpoints with loading, empty & error states
+        - [ ] Form validation & toast notifications implemented
+        - [ ] Role-based UI permissions respected (`OWNER`, `ADMIN`, `MEMBER`, `VIEWER`)
+    validations:
+      required: true
