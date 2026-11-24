@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🛡️ Privacy-First AI Data Control Center
+<img src="./.github/assets/logo.svg" alt="Privacy-First AI Data Control Center Logo" width="96" height="96" />
+
+# Privacy-First AI Data Control Center
 
 **Real-time local privacy guardrails, secret redaction, and cloud governance for AI coding assistants.**
 
